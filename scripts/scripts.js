@@ -1,4 +1,5 @@
 import {
+  buildBlock,
   decorateBlocks,
   decorateIcons,
   decorateSections,
@@ -8,6 +9,17 @@ import {
 } from './lib-franklin.js';
 
 window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information here
+
+const mjmlTemplate = (mjmlHead, mjmlBody) => `
+<mjml>
+  <mj-head>
+    ${mjmlHead}
+  </mj-head>
+  <mj-body>
+    ${mjmlBody}
+  </mj-body>
+</mjml>
+`;
 
 async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
   let mjmlScript$;
@@ -123,7 +135,11 @@ async function toMjml(main) {
             const decorator = await loadBlock(block);
             const decorated$ = decorator(block);
             const styles$ = loadStyles(decorator);
-            return Promise.all([decorated$, styles$]);
+            return Promise.all([decorated$, styles$])
+              .catch(err => {
+                console.error(err);
+                return [];
+              })
           } else {
             return Promise.resolve([]);
           }
@@ -131,16 +147,7 @@ async function toMjml(main) {
     })));
   })));
 
-  const mjml = `
-    <mjml>
-      <mj-head>
-        ${mjmlHead}
-      </mj-head>
-      <mj-body>
-        ${mjmlBody}
-      </mj-body>
-    </mjml>
-  `;
+  const mjml = mjmlTemplate(mjmlHead, mjmlBody);
   const mjml2html = await mjml2html$;
   console.log(mjml);
   const { html } = mjml2html(mjml);
@@ -151,13 +158,28 @@ async function toMjml(main) {
   document.body.insertAdjacentElement('beforebegin', iframe);
 }
 
+function buildHeroBlock(main) {
+  const h1 = main.querySelector('h1');
+  const picture = main.querySelector('picture');
+  // eslint-disable-next-line no-bitwise
+  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
+    const elems = [picture, h1];
+    if (h1.nextElementSibling) {
+      elems.push(h1.nextElementSibling);
+    };
+    const section = document.createElement('div');
+    section.append(buildBlock('hero', { elems }));
+    main.prepend(section);
+  }
+}
+
 /**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
 function buildAutoBlocks(main) {
   try {
-
+    buildHeroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
