@@ -1,0 +1,11 @@
+name = "personalization"
+main = "src/worker.js"
+compatibility_date = "2022-12-05"
+
+[vars]
+P_API_TYPE = "adobe-campaign"
+P_API_URL = "https://adobeio-mkt-stage1.campaign.adobe.com"
+
+# The necessary secrets are:
+# - P_API_USER = "..."
+# - P_API_PASSWORD = "..."
