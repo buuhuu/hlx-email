@@ -9,6 +9,7 @@ import {
 } from './lib-franklin.js';
 
 window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information here
+window.thridPartyScripts = [];
 
 const mjmlTemplate = (mjmlHead, mjmlBody) => `
 <mjml>
@@ -21,22 +22,29 @@ const mjmlTemplate = (mjmlHead, mjmlBody) => `
 </mjml>
 `;
 
-async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
-  let mjmlScript$;
+async function loadScript(src) {
   if (!document.querySelector(`head > script[src="${src}"]`)) {
-    mjmlScript$ = new Promise((resolve, reject) => {
+    window.thridPartyScripts[src] = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.crossOrigin = true;
       script.src = src;
       script.onload = resolve;
       script.onerror = reject;
       document.head.appendChild(script);
-    })
-  } else {
-    mjmlScript$ = Promise.resolve();
+    });
+    return window.thridPartyScripts[src];
   }
-  await mjmlScript$;
+  return window.thridPartyScripts[src];
+}
+
+async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
+  await loadScript(src);
   return window.mjml;
+}
+
+async function loadLess(src = 'https://unpkg.com/less/dist/less.min.js') {
+  await loadScript(src);
+  return window.less;
 }
 
 async function loadBlock(block) {
@@ -51,14 +59,15 @@ async function loadBlock(block) {
       if (!blockModule.default) {
         throw new Error('default export not found');
       }
-      decorator = async (block) => {
+      decorator = async (b) => {
         try {
-           return await blockModule.default(block);
+          return await blockModule.default(b);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.log(`failed to load module for ${blockName}`, error);
+          return null;
         }
-      }
+      };
       if (blockModule.styles) {
         decorator.styles = blockModule.styles
           .map((stylesheet) => `/${blockFolder}/${stylesheet}`);
@@ -68,7 +77,7 @@ async function loadBlock(block) {
           .map((stylesheet) => `/${blockFolder}/${stylesheet}`);
       }
       if (!blockModule.styles && !blockModule.inlineStyles) {
-        decorator.inlineStyles = [`/${blockFolder}/${blockName}.css`]
+        decorator.inlineStyles = [`/${blockFolder}/${blockName}.css`];
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -84,77 +93,165 @@ async function loadBlock(block) {
   return decorator;
 }
 
+async function parseStyle(css) {
+  const less = await loadLess();
+  const ast = await less.parse(css);
+  const attributes = {};
+
+  for (let i = 0; i < ast.rules.length; i += 1) {
+    const rule = ast.rules[i];
+    if (rule.isRuleset) {
+      // get the mj-* selectors
+      const defs = rule.selectors
+        .map((selector) => {
+          const first = selector.elements[0];
+          if (first && first.value && first.value.indexOf('mj-') !== 0) {
+            return null;
+          }
+          const second = selector.elements[1];
+          if (second && second.value && second.value.charAt(0) === '.') {
+            if (first.value !== 'mj-all') {
+              // mj-class is not element specific
+              console.log('className not supported for mj elements other than mj-all');
+              return null;
+            }
+            return { mjEl: first.value, mjClass: second.value.substring(1) };
+          }
+          return { mjEl: first.value };
+        })
+        .filter((def) => !!def);
+
+      if (defs.length) {
+        // remove the rule from the ruleset
+        ast.rules.splice(i, 1);
+        i -= 1;
+        const declarations = rule.rules
+          .map((declaration) => {
+            const [{ value: name }] = declaration.name;
+            let value = declaration.value.toCSS();
+            if (value.charAt(0) === '\'') value = value.substring(1);
+            if (value.charAt(value.length - 1) === '\'') value = value.substring(0, value.length - 1);
+            return [name, value];
+          })
+          .filter((decl) => !!decl)
+          .reduce((map, [name, value]) => ({ ...map, [name]: value }), {});
+        if (Object.keys(declarations).length) {
+          defs.forEach(({ mjEl, mjClass = '*' }) => {
+            if (!attributes[mjEl]) attributes[mjEl] = {};
+            if (!attributes[mjEl][mjClass]) attributes[mjEl][mjClass] = {};
+            attributes[mjEl][mjClass] = { ...attributes[mjEl][mjClass], ...declarations };
+          });
+        }
+      }
+    }
+  }
+
+  const { css: genCss } = new less.ParseTree(ast, []).toCSS({});
+
+  return [attributes, genCss];
+}
+
 async function loadStyles({ styles, inlineStyles }) {
   const loadStyle = async (stylesheet, inline) => {
     const resp = await fetch(`${window.hlx.codeBasePath}${stylesheet}`);
     if (resp.ok) {
-      const text = await resp.text();
-      return `
-        <mj-style${inline && ' inline="true"'}>
-          ${text}
-        </mj-style>
-      `;
-    } else {
-      console.log(`failed to load stylesheet: ${stylesheet}`);
+      let mjml = '';
+      const text = (await resp.text()).trim();
+      if (text) {
+        const [attributes, parsedStyles] = await parseStyle(text);
+
+        if (Object.keys(attributes).length) {
+          mjml += '<mj-attributes>\n';
+          Object.keys(attributes).forEach((mjEl) => {
+            Object.keys(attributes[mjEl]).forEach((mjClass) => {
+              if (mjClass === '*') {
+                mjml += `<${mjEl} `;
+              } else {
+                mjml += `<mj-class name="${mjClass}" `;
+              }
+              mjml += Object.entries(attributes[mjEl][mjClass])
+                .map(([name, value]) => `${name}="${value}"`)
+                .join(' ');
+              mjml += '/>\n';
+            });
+          });
+          mjml += '</mj-attributes>\n';
+        }
+        if (parsedStyles) {
+          mjml += `
+            <mj-style${inline ? ' inline="true"' : ''}>
+              ${parsedStyles}
+            </mj-style>
+          `;
+        }
+      }
+      return mjml;
     }
-  }
-  const styles$ = styles 
+    console.log(`failed to load stylesheet: ${stylesheet}`);
+    return '';
+  };
+  const styles$ = styles
     ? styles.map(async (stylesheet) => loadStyle(stylesheet, false))
     : [];
-  const inlineStyles$ = inlineStyles 
+  const inlineStyles$ = inlineStyles
     ? inlineStyles.map(async (stylesheet) => loadStyle(stylesheet, true))
-    : []
+    : [];
 
-  return Promise.all(styles$.concat(inlineStyles$));
+  return Promise.all(styles$.concat(inlineStyles$))
+    .then((resolvedStylesheets) => resolvedStylesheets.join(''));
 }
 
 function reduceMjml(mjml) {
   return mjml.reduce(
     ([body, head], [sectionBody, sectioHead]) => [
-      body + (sectionBody || ''), 
-      head + (sectioHead || '')
+      body + (sectionBody || ''),
+      head + (sectioHead || ''),
     ],
-     ['', '']);
+    ['', ''],
+  );
 }
 
 async function toMjml(main) {
   const mjml2html$ = loadMjml();
-  const [mjmlBody, mjmlHead]  = reduceMjml(await Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => {
-    return reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
-      if (wrapper.matches('.default-content-wrapper')) {
-        return Promise.resolve([`
+  const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
+    if (wrapper.matches('.default-content-wrapper')) {
+      return Promise.resolve([`
           <mj-section>
             <mj-column>
               <mj-text>${wrapper.innerHTML}</mj-text>
             </mj-column>
           </mj-section>
         `]);
-      } else {
-          const block = wrapper.querySelector('.block');
-          if (block) {
-            const decorator = await loadBlock(block);
-            const decorated$ = decorator(block);
-            const styles$ = loadStyles(decorator);
-            return Promise.all([decorated$, styles$])
-              .catch(err => {
-                console.error(err);
-                return [];
-              })
-          } else {
-            return Promise.resolve([]);
-          }
-      }
-    })));
-  })));
+    }
+    const block = wrapper.querySelector('.block');
+    if (block) {
+      const decorator = await loadBlock(block);
+      const decorated$ = decorator(block);
+      const styles$ = loadStyles(decorator);
+      return Promise.all([decorated$, styles$])
+        .catch((err) => {
+          console.error(err);
+          return [];
+        });
+    }
+    return Promise.resolve([]);
+  })))));
+  const styles$ = loadStyles({
+    styles: ['/styles/email-styles.css'],
+    inlineStyles: ['/styles/email-inline-styles.css'],
+  });
 
-  const mjml = mjmlTemplate(mjmlHead, mjmlBody);
+  const mjmlStyles = await styles$;
+  const [body, head] = reduceMjml(await main$);
+
+  const mjml = mjmlTemplate(mjmlStyles + head, body);
   const mjml2html = await mjml2html$;
   console.log(mjml);
   const { html } = mjml2html(mjml);
   const iframe = document.createElement('iframe');
   iframe.srcdoc = html;
-  iframe.width = "100%";
-  iframe.height = "100%";
+  iframe.width = '100%';
+  iframe.height = '100%';
   document.body.insertAdjacentElement('beforebegin', iframe);
 }
 
@@ -166,7 +263,7 @@ function buildHeroBlock(main) {
     const elems = [picture, h1];
     if (h1.nextElementSibling) {
       elems.push(h1.nextElementSibling);
-    };
+    }
     const section = document.createElement('div');
     section.append(buildBlock('hero', { elems }));
     main.prepend(section);
@@ -231,7 +328,7 @@ export function addFavIcon(href) {
 /**
  * loads everything that doesn't need to be delayed.
  */
-async function loadLazy(doc) {
+async function loadLazy(/* doc */) {
   sampleRUM('lazy');
 }
 
