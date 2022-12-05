@@ -1,7 +1,3 @@
-const allowedOrigins = [
-    'http://localhost:1234'
-]
-
 function transformAdobeCampaignResponse(data) {
     return Object.entries(data)
         .map(([key, object]) => {
@@ -35,7 +31,7 @@ function transformAdobeCampaignResponse(data) {
 
 }
 
-async function handleAdobeCampaign(pathname, params) {
+async function handleAdobeCampaign(origin, pathname, params) {
     const url = P_API_URL;
     const user = P_API_USER;
     const password = P_API_PASSWORD;
@@ -64,23 +60,32 @@ async function handleAdobeCampaign(pathname, params) {
         status: status,
         headers: {
             'Content-Type': 'application/json;charset=utf-8',
-            'Access-Control-Allow-Origin': allowedOrigins.join(' '),
+            'Access-Control-Allow-Origin': origin,
             'Vary': 'Origin'
         }
     });
 }
 
 async function handleRequest(request) {
+    const { headers } = request;
     const { searchParams, pathname } = new URL(request.url);
     const type = P_API_TYPE;
+    const origin = headers.get('Origin');
 
-    switch (type) {
-        case 'adobe-campaign': return handleAdobeCampaign(pathname, searchParams);
-        default: return Response(null, {
-            status: 404,
-            statusText: 'Not Found',
-            headers: { ...corsHeaders }
-        });
+    if (origin !== null && (origin.match(/.*\.hlx\.(page|live)/) || origin.match('localhost:\d+'))) {
+        switch (type) {
+            case 'adobe-campaign': return handleAdobeCampaign(origin, pathname, searchParams);
+            default: return Response(null, {
+                status: 404,
+                statusText: 'Not Found',
+                headers: { 'Access-Control-Allow-Origin': origin }
+            });
+        }
+    } else {
+        return Response(null, {
+            status: 405,
+            statusText: 'Not Allowed'
+        })
     }
 }
 
