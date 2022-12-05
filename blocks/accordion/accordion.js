@@ -1,6 +1,6 @@
-const template = props => `
+const template = (props) => `
   <mj-accordion css-class="accordion">
-    ${props.items.map(item => `
+    ${props.items.map((item) => `
     <mj-accordion-element css-class="accordion-element"
       icon-wrapped-url="/icons/circle_chevron_down_icon.svg"
       icon-unwrapped-url="/icons/circle_chevron_up_icon.svg"
@@ -11,13 +11,13 @@ const template = props => `
     </mj-accordion-element>
     `).join('')}
   </mj-accordion>
-`
+`;
 
 export default function decorate(block) {
-  const items = Array.from(block.querySelectorAll(':scope > div > div')).map(item => ({
+  const items = Array.from(block.querySelectorAll(':scope > div > div')).map((item) => ({
     title: item.querySelector('h2').textContent,
     text: item.querySelector('p').textContent,
   }));
-  
-  return template({items})
+
+  return template({ items });
 }
