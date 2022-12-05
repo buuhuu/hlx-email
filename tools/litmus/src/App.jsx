@@ -9,7 +9,7 @@ import {
   ListView,
   Item,
   View,
-  Button
+  Button, Divider
 } from '@adobe/react-spectrum';
 import Error from "@spectrum-icons/illustrations/Error"
 import { useEffect, useState } from 'react';
@@ -25,13 +25,13 @@ async function createLitmusEmail(htmlString) {
   const response = await fetch(`${baseUrl}/emails`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: {
+    body: JSON.stringify({
       html_text: htmlString
-    }
+    })
   })
 
   if (!response.ok) {
-    throw response.error()
+    throw new Error('Error creating email')
   }
 
   const responseJSON = await response.json()
@@ -44,11 +44,21 @@ async function createLitmusEmail(htmlString) {
   return emailGuid
 }
 
+async function getEmailPreview(guid, client) {
+  const response = await fetch(`${baseUrl}/emails/${guid}/preview/${client}`)
+
+  if (!response.ok) {
+    throw new Error('Error getting preview')
+  }
+
+  return response.json()
+}
+
 async function getClientConfigurations() {
   const response = await fetch(`${baseUrl}/clients/configurations`)
 
   if (!response.ok) {
-    throw response.error()
+    throw new Error('Error getting cleint configs')
   }
 
   return response.json()
@@ -60,12 +70,33 @@ function LoadingCircle() {
   </Flex>
 }
 
+async function performPreview(clients) {
+  const html = getEmailHTML()
+  const guid = await createLitmusEmail(html)
+  const clientPromises = clients.map((client) => {
+    return getEmailPreview(guid, client)
+  })
+  return Promise.all(clientPromises)
+}
+
 function App() {
   const [loading, setLoading] = useState(true)
   const [configs, setConfigs] = useState(null)
   const [error, setError] = useState(null)
 
   const [selectedClients, setSelectedClients] = useState(new Set([]))
+
+  const [previewUrls, setPreviewUrls] = useState(null)
+
+  function handlePreview() {
+    setLoading(true)
+    performPreview([...selectedClients])
+      .then((previewUrls) => setPreviewUrls(previewUrls))
+      .catch((error) => {
+        setError(error);
+      })
+      .finally(() => setLoading(false))
+  }
 
   useEffect(() => {
     getClientConfigurations().then((configs) => {
@@ -74,7 +105,6 @@ function App() {
         .sort((a, b) => a.name > b.name)
       setConfigs(mappedConfigs)
       setLoading(false)
-      console.log(mappedConfigs)
     }).catch(e => setError(e))
   }, [])
 
@@ -83,12 +113,14 @@ function App() {
       <Flex direction="column" height='100%' gap={'size-200'}>
         <Heading>Simulate Email on Clients (Litmus)</Heading>
         { loading && <LoadingCircle /> }
-        { !loading && error && <IllustratedMessage>
-          <Error />
-          <Heading>Error</Heading>
-          <Content>{error}</Content>
-        </IllustratedMessage>}
-        { !loading && configs &&
+        { !loading && error &&
+          <IllustratedMessage>
+            <Error />
+            <Heading>Error</Heading>
+            <Content>{error.message}</Content>
+          </IllustratedMessage>
+        }
+        { !loading && !error && configs &&
           <>
             Select the clients to test:
             <ListView
@@ -102,7 +134,15 @@ function App() {
               {configs.map(config => <Item key={config.id}>{config.name}</Item>) }
             </ListView>
           </>}
-        <Button variant={"accent"}>Simulate Selected Clients</Button>
+        <Button variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
+        {!loading && !error && previewUrls &&
+          <>
+            <Divider size={'s'} />
+            {
+              previewUrls.map((preview) => <img key={preview.thumb450} src={preview.thumb450} alt={'preview'} />)
+            }
+          </>
+        }
       </Flex>
     </View>
   </Provider>
