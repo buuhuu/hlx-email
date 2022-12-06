@@ -13,7 +13,7 @@ const template = (props) => `
 export default function decorate(block) {
   const createJPGSource = (src) => {
     const url = new URL(src);
-    url.search = 'width=2000&format=jpg&optimize=medium';
+    url.search = 'width=2000&format=jpeg&optimize=medium';
     return url;
   };
 
