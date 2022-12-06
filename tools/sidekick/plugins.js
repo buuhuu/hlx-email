@@ -84,7 +84,8 @@ const downloadHtml = () => {
       const fileName = title
         .replaceAll(/\W+/g, '-')
         .replaceAll(/[-]{2,}/g, '-')
-        + '.eml'
+        .toLowerCase()
+        + '.emltpl'
 
       const eml = to + '\n' 
         + subject + '\n'
