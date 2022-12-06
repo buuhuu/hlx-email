@@ -253,7 +253,7 @@ async function toMjml(main) {
   iframe.srcdoc = html;
   iframe.width = '100%';
   iframe.height = '100%';
-  iframe.id = "__emailFrame"
+  iframe.id = '__emailFrame';
   document.body.insertAdjacentElement('beforeend', iframe);
 }
 
