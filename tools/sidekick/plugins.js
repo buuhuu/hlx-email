@@ -63,7 +63,7 @@ class EmailSidekickBanner {
     }
   }
 
-const copyHtml = ({ detail }) => {
+const copyHtml = () => {
     const iframe = document.getElementById('__emailFrame');
     if (iframe) {
         navigator.clipboard.writeText(iframe.srcdoc).then(() => {
@@ -73,5 +73,49 @@ const copyHtml = ({ detail }) => {
     }
 };
 
+const downloadHtml = () => {
+  const iframe = document.getElementById('__emailFrame');
+    if (iframe) {
+      const h1 = iframe.contentWindow.document.body.querySelector('h1');
+      const title = h1 ? h1.innerText : 'New E-Mail';
+      const subject = `Subject: ${title}`;
+      const to = 'To: noreply@adobe.com';
+      const html = iframe.srcdoc;
+      const fileName = title
+        .replaceAll(/\W+/g, '-')
+        .replaceAll(/[-]{2,}/g, '-')
+        .toLowerCase()
+        + '.emltpl'
+
+      const eml = to + '\n' 
+        + subject + '\n'
+        + 'Content-Type: text/html\n'
+        + 'X-Unsent: 1'+'\n'
+        + '\n'
+        + '\n'
+        + html
+      const blob = new Blob([eml], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+
+      const fileLink = document.createElement('a');
+      var linkText = document.createTextNode(fileName);
+      fileLink.appendChild(linkText);
+      fileLink.href = url;
+      fileLink.download = fileName;
+      fileLink.style.visibility = 'hidden';
+      
+      fileLink.onclick = () => {
+        setTimeout(() => {
+          fileLink.remove();
+          URL.revokeObjectURL(url);
+        })
+      }
+      
+      document.body.appendChild(fileLink);
+      fileLink.click();
+    }
+}
+
 const sk = document.querySelector('helix-sidekick');
 sk.addEventListener('custom:copyHtml', copyHtml);
+sk.addEventListener('custom:downloadHtml', downloadHtml);

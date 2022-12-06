@@ -38,12 +38,12 @@ async function loadScript(src) {
   return window.thridPartyScripts[src];
 }
 
-async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
+async function loadMjml(src = 'https://unpkg.com/mjml-browser@4.13.0/lib/index.js') {
   await loadScript(src);
   return window.mjml;
 }
 
-async function loadLess(src = 'https://unpkg.com/less/dist/less.min.js') {
+async function loadLess(src = 'https://unpkg.com/less@4.1.3/dist/less.min.js') {
   await loadScript(src);
   return window.less;
 }

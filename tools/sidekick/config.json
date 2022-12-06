@@ -26,12 +26,21 @@
         },
         {
             "id": "copyHtml",
-            "title": "Copy HTML",
+            "title": "Copy E-Mail",
             "environments": [
                 "dev",
                 "preview"
             ],
             "event": "copyHtml"
+        },
+        {
+            "id": "downloadHtml",
+            "title": "Download E-Mail",
+            "environments": [
+                "dev",
+                "preview"
+            ],
+            "event": "downloadHtml"
         }
     ]
 }
