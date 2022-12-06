@@ -23,6 +23,10 @@ footer {
   display: none;
 }
 
+helix-sidekick ~ iframe {
+  margin-top: 50px;
+}
+
 iframe {
   border: none;
 }

@@ -253,7 +253,8 @@ async function toMjml(main) {
   iframe.srcdoc = html;
   iframe.width = '100%';
   iframe.height = '100%';
-  document.body.insertAdjacentElement('beforebegin', iframe);
+  iframe.id = "__emailFrame"
+  document.body.insertAdjacentElement('beforeend', iframe);
 }
 
 function buildHeroBlock(main) {
