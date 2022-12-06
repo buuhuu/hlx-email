@@ -2,7 +2,7 @@ export default function decorate(block) {
   let mjml = `
     <mj-section>
       <mj-column>
-        <mj-table css-class="email-table">
+        <mj-table css-class="table">
 `;
   const rows = [...block.children];
   rows.forEach((row, i) => {
