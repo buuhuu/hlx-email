@@ -1,6 +1,7 @@
 import {
   buildBlock,
   decorateBlocks,
+  decorateButtons,
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
@@ -214,14 +215,21 @@ function reduceMjml(mjml) {
 
 export function decorateDefaultContent(wrapper) {
   return [...wrapper.children]
-    .map((contentEl) => {
-      const img = contentEl.querySelector('img');
-
+    .map((par) => {
+      const img = par.querySelector('img');
       if (img) {
-        return `<mj-image src="${img.src}" />`;
+        return `<mj-image css-class="image" src="${img.src}" />`;
+      }
+      if (par.matches('.button-container')) {
+        const link = par.querySelector(':scope > a');
+        return `
+              <mj-button css-class="button" href="${link.href}">
+                ${link.innerText}
+              </mj-button>
+          `;
       }
 
-      return `<mj-text>${contentEl.outerHTML}</mj-text>`;
+      return `<mj-text>${par.outerHTML}</mj-text>`;
     })
     .join('');
 }
@@ -347,6 +355,7 @@ function decoratePersonalization(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
