@@ -26,3 +26,7 @@ footer {
 iframe {
   border: none;
 }
+
+helix-sidekick ~ iframe {
+  margin-top: 50px;
+}
