@@ -11,8 +11,14 @@ const template = (props) => `
 `;
 
 export default function decorate(block) {
-  const items = Array.from(block.querySelectorAll(':scope picture source[type="image/webp"]:not([media])')).map((item) => ({
-    src: item.srcset,
+  const createJPGSource = (src) => {
+    const url = new URL(src);
+    url.search = 'width=2000&format=jpg&optimize=medium';
+    return url;
+  };
+
+  const items = Array.from(block.querySelectorAll(':scope picture img')).map((item) => ({
+    src: createJPGSource(item.src),
   }));
 
   return template({ items });
