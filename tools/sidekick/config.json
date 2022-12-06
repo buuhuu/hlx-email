@@ -9,7 +9,7 @@
             "environments": [
                 "edit"
             ],
-            "url": "https://main--hlx-email--buuhuu.hlx.page/tools/personalization/dist/index.html",
+            "url": "/tools/personalization/dist/index.html",
             "isPalette": true,
             "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
         },
@@ -20,7 +20,7 @@
                 "dev",
                 "preview"
             ],
-            "url": "https://main--hlx-email--buuhuu.hlx.page/tools/simulate/dist/index.html",
+            "url": "/tools/simulate/dist/index.html",
             "isPalette": true,
             "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
         },
