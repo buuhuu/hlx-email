@@ -5,7 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: './dist'
+    outDir: './dist',
+    rollupOptions: {
+      external: [
+        'node-fetch', 'fetch-blob'
+      ]
+    }
   },
   base: '/tools/litmus/dist/'
 })

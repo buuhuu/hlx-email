@@ -11,7 +11,7 @@ import {
   View,
   Button, Divider
 } from '@adobe/react-spectrum';
-import Error from "@spectrum-icons/illustrations/Error"
+import ErrorImage from "@spectrum-icons/illustrations/Error"
 import { useEffect, useState } from 'react';
 
 function getEmailHTML() {
@@ -19,50 +19,8 @@ function getEmailHTML() {
   return '<h1 style="{ color: green; }">Hello</h1>'
 }
 
-const baseUrl = 'https://instant-api.litmus.com/v1';
-
-async function createLitmusEmail(htmlString) {
-  const response = await fetch(`${baseUrl}/emails`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      html_text: htmlString
-    })
-  })
-
-  if (!response.ok) {
-    throw new Error('Error creating email')
-  }
-
-  const responseJSON = await response.json()
-  const emailGuid = responseJSON['email_guid']
-
-  if (!emailGuid) {
-    throw new Error('The litmus API did not return an email GUID.')
-  }
-
-  return emailGuid
-}
-
-async function getEmailPreview(guid, client) {
-  const response = await fetch(`${baseUrl}/emails/${guid}/preview/${client}`)
-
-  if (!response.ok) {
-    throw new Error('Error getting preview')
-  }
-
-  return response.json()
-}
-
-async function getClientConfigurations() {
-  const response = await fetch(`${baseUrl}/clients/configurations`)
-
-  if (!response.ok) {
-    throw new Error('Error getting cleint configs')
-  }
-
-  return response.json()
-}
+const litmusBaseUrl = 'https://instant-api.litmus.com/v1';
+const proxyBaseUrl = 'https://53444-franklinemail-stage.adobeioruntime.net/api/v1/web/litmus'
 
 function LoadingCircle() {
   return <Flex justifyContent='center' marginTop={'100px'}>
@@ -70,13 +28,28 @@ function LoadingCircle() {
   </Flex>
 }
 
+async function getClientConfigurations() {
+  const response = await fetch(`${litmusBaseUrl}/clients/configurations`)
+
+  if (!response.ok) {
+    throw new Error('Error getting client configs')
+  }
+
+  return response.json()
+}
+
 async function performPreview(clients) {
-  const html = getEmailHTML()
-  const guid = await createLitmusEmail(html)
-  const clientPromises = clients.map((client) => {
-    return getEmailPreview(guid, client)
+  const response = await fetch(`${proxyBaseUrl}/preview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ html: getEmailHTML(), clients })
   })
-  return Promise.all(clientPromises)
+
+  if (!response.ok) {
+    throw new Error('Error getting client configs')
+  }
+
+  return response.json()
 }
 
 function App() {
@@ -115,7 +88,7 @@ function App() {
         { loading && <LoadingCircle /> }
         { !loading && error &&
           <IllustratedMessage>
-            <Error />
+            <ErrorImage />
             <Heading>Error</Heading>
             <Content>{error.message}</Content>
           </IllustratedMessage>
@@ -134,7 +107,7 @@ function App() {
               {configs.map(config => <Item key={config.id}>{config.name}</Item>) }
             </ListView>
           </>}
-        <Button variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
+        <Button isDisabled={loading} variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
         {!loading && !error && previewUrls &&
           <>
             <Divider size={'s'} />

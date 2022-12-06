@@ -7,3 +7,6 @@ helix-importer-ui
 
 tools/litmus/dist
 tools/litmus/node_modules
+
+**/.aio
+**/.env
