@@ -64,9 +64,9 @@ class EmailSidekickBanner {
   }
 
 const copyHtml = ({ detail }) => {
-    const iframe = document.querySelector('iframe');
+    const iframe = document.getElementById('__emailFrame');
     if (iframe) {
-        navigator.clipboard.writeText(iframe.contentWindow.document.documentElement.innerHTML).then(() => {
+        navigator.clipboard.writeText(iframe.srcdoc).then(() => {
             const banner = new EmailSidekickBanner('get-html-data');
             banner.write('HTML copied to clipboard', 5);
         });
