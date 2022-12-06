@@ -6,17 +6,17 @@ export default function decorate(block) {
 `;
   const rows = [...block.children];
   rows.forEach((row, i) => {
-    mjml += `<tr>`;
+    mjml += '<tr>';
     const cells = [...row.children];
-    cells.forEach((cell, j) => {
+    cells.forEach((cell) => {
       if (i === 0) {
         mjml += `<th>${cell.innerHTML}</th>`;
       } else {
         mjml += `<td>${cell.innerHTML}</td>`;
       }
-    })
-    mjml += `</tr>`;
-  })
+    });
+    mjml += '</tr>';
+  });
   mjml += `
         </mj-table>
       </mj-column>
