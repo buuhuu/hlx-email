@@ -10,6 +10,7 @@ import {
 
 window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information here
 window.thridPartyScripts = [];
+window.personalizationType = 'adobe-campaign-standard';
 
 const mjmlTemplate = (mjmlHead, mjmlBody) => `
 <mjml>
@@ -37,12 +38,12 @@ async function loadScript(src) {
   return window.thridPartyScripts[src];
 }
 
-async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
+async function loadMjml(src = 'https://unpkg.com/mjml-browser@4.13.0/lib/index.js') {
   await loadScript(src);
   return window.mjml;
 }
 
-async function loadLess(src = 'https://unpkg.com/less/dist/less.min.js') {
+async function loadLess(src = 'https://unpkg.com/less@4.1.3/dist/less.min.js') {
   await loadScript(src);
   return window.less;
 }
@@ -252,7 +253,8 @@ async function toMjml(main) {
   iframe.srcdoc = html;
   iframe.width = '100%';
   iframe.height = '100%';
-  document.body.insertAdjacentElement('beforebegin', iframe);
+  iframe.id = '__emailFrame';
+  document.body.insertAdjacentElement('beforeend', iframe);
 }
 
 function buildHeroBlock(main) {
@@ -283,6 +285,46 @@ function buildAutoBlocks(main) {
   }
 }
 
+function decoratePersonalization(main) {
+  main.querySelectorAll('em').forEach((em) => {
+    let text = em.innerText.trim();
+    let content = '';
+    let unwrap = true;
+    let match;
+
+    const transform = (expr) => {
+      if (window.personalizationType === 'adobe-campaign-standard') {
+        const nlExpr = `/${expr.replaceAll('.', '/')}`;
+        const name = nlExpr.split('/').pop();
+        return `<span class="acr-field nl-dce-field nl-dce-done" data-nl-expr="${nlExpr}" data-nl-type="string" data-contenteditable="false" contenteditable="false">${name}</span>`;
+      }
+      // fallback, no pers type, don't unwrap
+      unwrap = false;
+      return expr;
+    };
+
+    // eslint-disable-next-line no-cond-assign
+    while (match = text.match(/[a-zA-Z0-9]+\.[a-zA-Z0-9.]+/)) {
+      if (match.index > 0) {
+        const fragment = text.substring(0, match.index);
+        content += fragment;
+        // unwrap only if there are only non-word characters in between the expressions
+        unwrap = unwrap && !!fragment.match(/^\W+$/);
+      }
+
+      content += transform(match[0]);
+      text = text.substring(match.index + match[0].length);
+    }
+
+    if (unwrap) {
+      em.insertAdjacentHTML('afterend', content);
+      em.remove();
+    } else {
+      em.innerHTML = content;
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -293,6 +335,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decoratePersonalization(main);
   toMjml(main);
 }
 
