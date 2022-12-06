@@ -12,12 +12,12 @@ window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information 
 window.thridPartyScripts = [];
 window.personalizationType = 'adobe-campaign-standard';
 
-const mjmlTemplate = (mjmlHead, mjmlBody) => `
+const mjmlTemplate = (mjmlHead, mjmlBody, bodyCssClasses=[]) => `
 <mjml>
   <mj-head>
     ${mjmlHead}
   </mj-head>
-  <mj-body>
+  <mj-body css-class="${bodyCssClasses.join(' ')}">
     ${mjmlBody}
   </mj-body>
 </mjml>
@@ -180,7 +180,7 @@ async function loadStyles({ styles, inlineStyles }) {
         }
         if (parsedStyles) {
           mjml += `
-            <mj-style${inline ? ' inline="true"' : ''}>
+            <mj-style${inline ? ' inline="inline"' : ''}>
               ${parsedStyles}
             </mj-style>
           `;
@@ -212,6 +212,20 @@ function reduceMjml(mjml) {
   );
 }
 
+export function decorateDefaultContent(wrapper) {
+  return [...wrapper.children]
+    .map((contentEl) => {
+      const img = contentEl.querySelector('img');
+      
+      if (img) {
+        return `<mj-image src="${img.src}" />`;
+      }
+
+      return `<mj-text>${contentEl.outerHTML}</mj-text>`;
+    })
+    .join('');
+}
+
 async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
@@ -219,7 +233,7 @@ async function toMjml(main) {
       return Promise.resolve([`
           <mj-section>
             <mj-column>
-              <mj-text>${wrapper.innerHTML}</mj-text>
+              ${decorateDefaultContent(wrapper)}
             </mj-column>
           </mj-section>
         `]);
@@ -245,7 +259,7 @@ async function toMjml(main) {
   const mjmlStyles = await styles$;
   const [body, head] = reduceMjml(await main$);
 
-  const mjml = mjmlTemplate(mjmlStyles + head, body);
+  const mjml = mjmlTemplate(mjmlStyles + head, body, [...document.body.classList]);
   const mjml2html = await mjml2html$;
   console.log(mjml);
   const { html } = mjml2html(mjml);
@@ -278,7 +292,9 @@ function buildHeroBlock(main) {
  */
 function buildAutoBlocks(main) {
   try {
-    buildHeroBlock(main);
+    if (!document.body.classList.contains('no-hero')) {
+      buildHeroBlock(main);
+    }
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);

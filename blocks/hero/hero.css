@@ -1,12 +1,10 @@
 mj-hero {
-    background-position: 'left';
+    background-position: 'center';
     background-width: '600px';
     background-height: '150px';
     mode: 'fluid-height';
-    padding-left: '33%';
 }
 
 mj-all.hero-text {
     color: #fff;
-    align: 'right';
 }
