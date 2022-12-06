@@ -10,11 +10,27 @@
  * governing permissions and limitations under the License.
  */
 
-h1 { font-size: 30px; margin: 0.67em 0; }
-h2 { font-size: 22px; margin: 0.83em 0; }
-h3 { font-size: 17px; margin: 1em 0; }
-h4, h5 { font-size: 15px; margin: 1em 0; }
+h1 {
+    font-size: 30px;
+    margin: 0.67em 0;
+}
+
+h2 {
+    font-size: 22px;
+    margin: 0.83em 0;
+}
+
+h3 {
+    font-size: 17px;
+    margin: 1em 0;
+}
+
+h4,
+h5 {
+    font-size: 15px;
+    margin: 1em 0;
+}
 
 .jmp-newsletter h2 {
-    color: #FF9900;
+    color: #F90;
 }

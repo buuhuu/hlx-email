@@ -12,7 +12,7 @@ window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information 
 window.thridPartyScripts = [];
 window.personalizationType = 'adobe-campaign-standard';
 
-const mjmlTemplate = (mjmlHead, mjmlBody, bodyCssClasses=[]) => `
+const mjmlTemplate = (mjmlHead, mjmlBody, bodyCssClasses = []) => `
 <mjml>
   <mj-head>
     ${mjmlHead}
@@ -216,7 +216,7 @@ export function decorateDefaultContent(wrapper) {
   return [...wrapper.children]
     .map((contentEl) => {
       const img = contentEl.querySelector('img');
-      
+
       if (img) {
         return `<mj-image src="${img.src}" />`;
       }
