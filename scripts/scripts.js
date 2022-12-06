@@ -219,7 +219,12 @@ async function toMjml(main) {
     if (wrapper.matches('.default-content-wrapper')) {
       let mjmlParas = ``;
       [...wrapper.children].forEach((par) => {
-        if (par.matches('.button-container')) {
+        const img = par.querySelector(':scope > picture > img');
+        if (img) {
+          mjmlParas += `
+              <mj-image css-class="image" src="${img.src}" />
+          `;
+        } else if (par.matches('.button-container')) {
           const link = par.querySelector(':scope > a');
           mjmlParas += `
               <mj-button css-class="button" href="${link.href}">
