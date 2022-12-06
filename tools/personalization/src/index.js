@@ -4,10 +4,8 @@ import { defaultTheme, Provider, ListView, Item, Text, ActionButton, Flex, Bread
 import Folder from '@spectrum-icons/illustrations/Folder';
 import Copy from '@spectrum-icons/workflow/Copy';
 
-import Source from './source';
-
 const Personalization = () => {
-    const [{ items, source, loadingState, path, folderItems }, setState] = useState({
+    const [{ source, loadingState, path, folderItems }, setState] = useState({
         items: [],
         folderItems: [],
         path: [],
