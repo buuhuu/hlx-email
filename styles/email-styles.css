@@ -15,3 +15,7 @@ mj-all {
     font-size: 15px;
     line-height: 1.4;
 }
+
+mj-body {
+    background-color: #eee;
+}
