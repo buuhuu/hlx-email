@@ -1,6 +1,7 @@
 import {
   buildBlock,
   decorateBlocks,
+  decorateButtons,
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
@@ -216,10 +217,25 @@ async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
     if (wrapper.matches('.default-content-wrapper')) {
+      let mjmlParas = ``;
+      [...wrapper.children].forEach((par) => {
+        if (par.matches('.button-container')) {
+          const link = par.querySelector(':scope > a');
+          mjmlParas += `
+              <mj-button css-class="button" href="${link.href}">
+                ${link.innerText}
+              </mj-button>
+          `;
+        } else {
+          mjmlParas += `
+              <mj-text>${par.innerHTML}</mj-text>
+          `;
+        }
+      });
       return Promise.resolve([`
           <mj-section>
             <mj-column>
-              <mj-text>${wrapper.innerHTML}</mj-text>
+                ${mjmlParas}
             </mj-column>
           </mj-section>
         `]);
@@ -331,6 +347,7 @@ function decoratePersonalization(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
