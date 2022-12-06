@@ -4,8 +4,8 @@ const template = (props) => `
       <mj-accordion css-class="accordion">
         ${props.items.map((item) => `
         <mj-accordion-element css-class="accordion-element"
-          icon-wrapped-url="/icons/circle_chevron_down_icon.svg"
-          icon-unwrapped-url="/icons/circle_chevron_up_icon.svg"
+          icon-wrapped-url="/icons/circle_chevron_down_icon.jpg"
+          icon-unwrapped-url="/icons/circle_chevron_up_icon.jpg"
           icon-height="24px"
           icon-width="24px">
           <mj-accordion-title css-class="accordion-title">${item.title}</mj-accordion-title>

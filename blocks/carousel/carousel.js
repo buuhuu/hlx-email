@@ -1,7 +1,7 @@
 const template = (props) => `
   <mj-section>
     <mj-column>
-      <mj-carousel css-class="plop" left-icon="/icons/circle_chevron_left_icon.svg" right-icon="icons/circle_chevron_right_icon.svg" icon-width="24px">
+      <mj-carousel css-class="carousel" left-icon="/icons/circle_chevron_left_icon.jpg" right-icon="icons/circle_chevron_right_icon.jpg" icon-width="24px">
         ${props.items.map((item) => `
         <mj-carousel-image css-class="carousel-image" src="${item.src}" />
         `).join('')}
@@ -11,8 +11,14 @@ const template = (props) => `
 `;
 
 export default function decorate(block) {
-  const items = Array.from(block.querySelectorAll(':scope picture source:last-of-type')).map((item) => ({
-    src: item.srcset,
+  const createJPGSource = (src) => {
+    const url = new URL(src);
+    url.search = 'width=2000&format=jpeg&optimize=medium';
+    return url;
+  };
+
+  const items = Array.from(block.querySelectorAll(':scope picture img')).map((item) => ({
+    src: createJPGSource(item.src),
   }));
 
   return template({ items });
