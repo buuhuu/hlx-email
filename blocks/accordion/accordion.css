@@ -1,0 +1,15 @@
+.accordion {
+  border: none;
+  padding: 1px;
+}
+
+.accordion-title {
+  background-color: darkgrey;
+  color: white;
+  font-size: 22px !important;
+}
+
+.accordion-text {
+  background-color: #fafafa;
+  color: #505050;
+}
