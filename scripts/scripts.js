@@ -1,6 +1,7 @@
 import {
   buildBlock,
   decorateBlocks,
+  decorateButtons,
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
@@ -12,12 +13,12 @@ window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information 
 window.thridPartyScripts = [];
 window.personalizationType = 'adobe-campaign-standard';
 
-const mjmlTemplate = (mjmlHead, mjmlBody) => `
+const mjmlTemplate = (mjmlHead, mjmlBody, bodyCssClasses = []) => `
 <mjml>
   <mj-head>
     ${mjmlHead}
   </mj-head>
-  <mj-body>
+  <mj-body css-class="${bodyCssClasses.join(' ')}">
     ${mjmlBody}
   </mj-body>
 </mjml>
@@ -106,10 +107,19 @@ async function parseStyle(css) {
       const defs = rule.selectors
         .map((selector) => {
           const first = selector.elements[0];
-          if (first && first.value && first.value.indexOf('mj-') !== 0) {
+          const firstIsMjTag = first.value.indexOf('mj-') === 0;
+          const firstIsMjClass = first.value.indexOf('.mj-') === 0;
+          if (first && first.value && !firstIsMjTag && !firstIsMjClass) {
             return null;
           }
           const second = selector.elements[1];
+          if (firstIsMjClass) {
+            if (second || first.value.substring(1).indexOf('.') > 0) {
+              console.log('chaining mj-class selectors is not supported');
+              return null;
+            }
+            return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
+          }
           if (second && second.value && second.value.charAt(0) === '.') {
             if (first.value !== 'mj-all') {
               // mj-class is not element specific
@@ -130,8 +140,9 @@ async function parseStyle(css) {
           .map((declaration) => {
             const [{ value: name }] = declaration.name;
             let value = declaration.value.toCSS();
-            if (value.charAt(0) === '\'') value = value.substring(1);
-            if (value.charAt(value.length - 1) === '\'') value = value.substring(0, value.length - 1);
+            if (value.charAt(0) === '\'' && value.charAt(value.length - 1) === '\'') {
+              value = value.substring(1, value.length - 1);
+            }
             return [name, value];
           })
           .filter((decl) => !!decl)
@@ -180,7 +191,7 @@ async function loadStyles({ styles, inlineStyles }) {
         }
         if (parsedStyles) {
           mjml += `
-            <mj-style${inline ? ' inline="true"' : ''}>
+            <mj-style${inline ? ' inline="inline"' : ''}>
               ${parsedStyles}
             </mj-style>
           `;
@@ -212,6 +223,27 @@ function reduceMjml(mjml) {
   );
 }
 
+export function decorateDefaultContent(wrapper) {
+  return [...wrapper.children]
+    .map((par) => {
+      const img = par.querySelector('img');
+      if (img) {
+        return `<mj-image css-class="image" src="${img.src}" />`;
+      }
+      if (par.matches('.button-container')) {
+        const link = par.querySelector(':scope > a');
+        return `
+              <mj-button css-class="button" href="${link.href}">
+                ${link.innerText}
+              </mj-button>
+          `;
+      }
+
+      return `<mj-text>${par.outerHTML}</mj-text>`;
+    })
+    .join('');
+}
+
 async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
@@ -219,7 +251,7 @@ async function toMjml(main) {
       return Promise.resolve([`
           <mj-section>
             <mj-column>
-              <mj-text>${wrapper.innerHTML}</mj-text>
+              ${decorateDefaultContent(wrapper)}
             </mj-column>
           </mj-section>
         `]);
@@ -245,7 +277,7 @@ async function toMjml(main) {
   const mjmlStyles = await styles$;
   const [body, head] = reduceMjml(await main$);
 
-  const mjml = mjmlTemplate(mjmlStyles + head, body);
+  const mjml = mjmlTemplate(mjmlStyles + head, body, [...document.body.classList]);
   const mjml2html = await mjml2html$;
   console.log(mjml);
   const { html } = mjml2html(mjml);
@@ -258,17 +290,12 @@ async function toMjml(main) {
 }
 
 function buildHeroBlock(main) {
-  const h1 = main.querySelector('h1');
   const picture = main.querySelector('picture');
-  // eslint-disable-next-line no-bitwise
-  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    const elems = [picture, h1];
-    if (h1.nextElementSibling) {
-      elems.push(h1.nextElementSibling);
-    }
-    const section = document.createElement('div');
-    section.append(buildBlock('hero', { elems }));
-    main.prepend(section);
+  if (picture.parentElement === main.firstElementChild
+    && picture.parentElement.firstElementChild === picture) {
+    // picture is the first element on the page
+    const elems = [...picture.parentElement.children];
+    picture.parentElement.append(buildBlock('hero', { elems }));
   }
 }
 
@@ -331,6 +358,7 @@ function decoratePersonalization(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
