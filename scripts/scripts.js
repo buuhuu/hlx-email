@@ -106,11 +106,20 @@ async function parseStyle(css) {
       // get the mj-* selectors
       const defs = rule.selectors
         .map((selector) => {
-          const first = selector.elements[0];
-          if (first && first.value && first.value.indexOf('mj-') !== 0) {
+          let first = selector.elements[0];
+          const firstIsMjTag = first.value.indexOf('mj-') == 0;
+          const firstIsMjClass = first.value.indexOf('.mj-') == 0;
+          if (first && first.value && !firstIsMjTag && !firstIsMjClass) {
             return null;
           }
           const second = selector.elements[1];
+          if (firstIsMjClass) {
+            if (second || first.value.substring(1).indexOf('.') > 0) {
+              console.log('chaining mj-class selectors is not supported');
+              return null
+            }
+            return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
+          }
           if (second && second.value && second.value.charAt(0) === '.') {
             if (first.value !== 'mj-all') {
               // mj-class is not element specific

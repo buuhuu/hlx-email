@@ -17,9 +17,16 @@ mj-all {
 }
 
 mj-section {
-    padding: 0 20px;
+    padding: 0 10px;
+    css-class: 'section';
 }
 
 mj-body {
     background-color: #eee;
+}
+
+@media only screen and (min-width:600px) {
+    .section > table > tbody > tr > td {
+        padding: 0 !important;
+    }
 }
