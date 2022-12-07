@@ -106,9 +106,9 @@ async function parseStyle(css) {
       // get the mj-* selectors
       const defs = rule.selectors
         .map((selector) => {
-          let first = selector.elements[0];
-          const firstIsMjTag = first.value.indexOf('mj-') == 0;
-          const firstIsMjClass = first.value.indexOf('.mj-') == 0;
+          const first = selector.elements[0];
+          const firstIsMjTag = first.value.indexOf('mj-') === 0;
+          const firstIsMjClass = first.value.indexOf('.mj-') === 0;
           if (first && first.value && !firstIsMjTag && !firstIsMjClass) {
             return null;
           }
@@ -116,7 +116,7 @@ async function parseStyle(css) {
           if (firstIsMjClass) {
             if (second || first.value.substring(1).indexOf('.') > 0) {
               console.log('chaining mj-class selectors is not supported');
-              return null
+              return null;
             }
             return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
           }
@@ -291,7 +291,7 @@ async function toMjml(main) {
 
 function buildHeroBlock(main) {
   const picture = main.querySelector('picture');
-  if (picture.parentElement === main.firstElementChild 
+  if (picture.parentElement === main.firstElementChild
     && picture.parentElement.firstElementChild === picture) {
     // picture is the first element on the page
     const elems = [...picture.parentElement.children];
