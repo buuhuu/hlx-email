@@ -106,29 +106,38 @@ async function parseStyle(css) {
       // get the mj-* selectors
       const defs = rule.selectors
         .map((selector) => {
+          const isMjTag = (element) => element && element.value.indexOf('mj-') === 0;
+          const isMjClass = (element) => element && element.value.indexOf('.mj-') === 0;
+          const toDef = (first, second) => {
+            if (isMjClass(first)) {
+              if (second || first.value.substring(1).indexOf('.') > 0) {
+                console.log('chaining mj-class selectors is not supported');
+                return null;
+              }
+              return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
+            }
+            if (isMjTag(first)) {
+              if (second && second.value && second.value.charAt(0) === '.') {
+                if (first.value !== 'mj-all') {
+                  // mj-class is not element specific
+                  console.log('className not supported for mj elements other than mj-all');
+                  return null;
+                }
+                return { mjEl: first.value, mjClass: second.value.substring(1) };
+              }
+              return { mjEl: first.value };
+            }
+          }
           const first = selector.elements[0];
-          const firstIsMjTag = first.value.indexOf('mj-') === 0;
-          const firstIsMjClass = first.value.indexOf('.mj-') === 0;
-          if (first && first.value && !firstIsMjTag && !firstIsMjClass) {
-            return null;
-          }
           const second = selector.elements[1];
-          if (firstIsMjClass) {
-            if (second || first.value.substring(1).indexOf('.') > 0) {
-              console.log('chaining mj-class selectors is not supported');
-              return null;
-            }
-            return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
+          const def = toDef(first, second);
+          if (def) {
+            return def;
           }
-          if (second && second.value && second.value.charAt(0) === '.') {
-            if (first.value !== 'mj-all') {
-              // mj-class is not element specific
-              console.log('className not supported for mj elements other than mj-all');
-              return null;
-            }
-            return { mjEl: first.value, mjClass: second.value.substring(1) };
+          if ((isMjTag(second) || isMjClass(second)) && document.body.matches(first.value)) {
+            return toDef(second, selector.elements[2]);
           }
-          return { mjEl: first.value };
+          return null;
         })
         .filter((def) => !!def);
 
@@ -225,31 +234,35 @@ function reduceMjml(mjml) {
 
 export function decorateDefaultContent(wrapper) {
   return [...wrapper.children]
-    .map((par) => {
+    .reduce((mjml, par) => {
       const img = par.querySelector('img');
       if (img) {
-        return `<mj-image css-class="image" src="${img.src}" />`;
+        return mjml + `<mj-image css-class="image" src="${img.src}" />`;
       }
       if (par.matches('.button-container')) {
         const link = par.querySelector(':scope > a');
-        return `
+        return mjml + `
               <mj-button css-class="button" href="${link.href}">
                 ${link.innerText}
               </mj-button>
           `;
       }
-
-      return `<mj-text>${par.outerHTML}</mj-text>`;
-    })
-    .join('');
+      if (mjml.endsWith('</mj-text>')) {
+        return mjml.substring(0, mjml.length - 10) + `${par.outerHTML}</mj-text>`;
+      } else {
+        return mjml + `<mj-text>${par.outerHTML}</mj-text>`;
+      }
+    }, '');
 }
 
 async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
     if (wrapper.matches('.default-content-wrapper')) {
+      const cssClasses = [...section.classList]; 
+      const mjClasses = cssClasses.filter((cls) => cls !== 'section').map((cls) => `mj-${cls}`);
       return Promise.resolve([`
-          <mj-section>
+          <mj-section css-class="${cssClasses.join(' ')}" mj-class="${mjClasses.join(' ')}">
             <mj-column>
               ${decorateDefaultContent(wrapper)}
             </mj-column>

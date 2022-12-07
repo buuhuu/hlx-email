@@ -34,3 +34,16 @@ h5 {
 .jmp-newsletter h2 {
     color: #F90;
 }
+
+.aem-sites-sprint-summary h1 {
+    color: #375b8e;
+}
+
+.aem-sites-sprint-summary h2 {
+    color: #ba7300;
+}
+
+.aem-sites-sprint-summary .section.highlight a {
+    color: #787878;
+    text-decoration: none;
+}
