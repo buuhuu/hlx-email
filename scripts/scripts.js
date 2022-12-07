@@ -131,8 +131,9 @@ async function parseStyle(css) {
           .map((declaration) => {
             const [{ value: name }] = declaration.name;
             let value = declaration.value.toCSS();
-            if (value.charAt(0) === '\'') value = value.substring(1);
-            if (value.charAt(value.length - 1) === '\'') value = value.substring(0, value.length - 1);
+            if (value.charAt(0) === '\'' && value.charAt(value.length - 1) === '\'') {
+              value = value.substring(1, value.length - 1);
+            }
             return [name, value];
           })
           .filter((decl) => !!decl)
