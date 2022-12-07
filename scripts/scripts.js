@@ -304,7 +304,8 @@ async function toMjml(main) {
 
 function buildHeroBlock(main) {
   const picture = main.querySelector('picture');
-  if (picture.parentElement === main.firstElementChild
+  if (picture
+    && picture.parentElement === main.firstElementChild
     && picture.parentElement.firstElementChild === picture) {
     // picture is the first element on the page
     const elems = [...picture.parentElement.children];
