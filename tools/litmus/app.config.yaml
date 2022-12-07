@@ -1,6 +1,5 @@
 application:
   actions: actions
-  web: pages
   runtimeManifest:
     packages:
       litmus:
@@ -12,7 +11,7 @@ application:
             runtime: 'nodejs:14'
             inputs:
               LOG_LEVEL: debug
-              LITMUS_TOKEN: $LITMUS_TOKEN
+#              LITMUS_TOKEN: $LITMUS_TOKEN
             annotations:
               require-adobe-auth: false
               final: true

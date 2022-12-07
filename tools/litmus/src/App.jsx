@@ -1,6 +1,4 @@
 import {
-  Provider,
-  defaultTheme,
   Flex,
   ProgressCircle,
   IllustratedMessage,
@@ -8,11 +6,10 @@ import {
   Content,
   ListView,
   Item,
-  View,
   Button, Divider
 } from '@adobe/react-spectrum';
 import ErrorImage from "@spectrum-icons/illustrations/Error"
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function getEmailHTML() {
   // TODO get from iframe
@@ -46,7 +43,7 @@ async function performPreview(clients) {
   })
 
   if (!response.ok) {
-    throw new Error('Error getting client configs')
+    throw new Error(`Error getting client previews: ${response.status}`)
   }
 
   return response.json()
@@ -71,6 +68,11 @@ function App() {
       .finally(() => setLoading(false))
   }
 
+  function handleRestart() {
+    setLoading(false)
+    setError(null)
+  }
+
   useEffect(() => {
     getClientConfigurations().then((configs) => {
       const mappedConfigs = Object.entries(configs)
@@ -81,44 +83,43 @@ function App() {
     }).catch(e => setError(e))
   }, [])
 
-  return <Provider theme={defaultTheme} height='100%'>
-    <View padding={'20px'}>
-      <Flex direction="column" height='100%' gap={'size-200'}>
-        <Heading>Simulate Email on Clients (Litmus)</Heading>
-        { loading && <LoadingCircle /> }
-        { !loading && error &&
-          <IllustratedMessage>
-            <ErrorImage />
-            <Heading>Error</Heading>
-            <Content>{error.message}</Content>
-          </IllustratedMessage>
+  if (error) {
+    return <>
+      <IllustratedMessage>
+        <ErrorImage />
+        <Heading>Error</Heading>
+        <Content>{error.message}</Content>
+      </IllustratedMessage>
+      <Button variant={"accent"} onPress={handleRestart}>Restart</Button>
+    </>
+  }
+
+  if (loading) {
+    return <LoadingCircle />
+  }
+
+  return <>
+    { configs && <ListView
+      aria-label={'list of possible clients'}
+      maxHeight={'static-size-6000'}
+      items={configs}
+      label={'Clients to test'}
+      selectionMode={'multiple'}
+      selectedKeys={selectedClients}
+      onSelectionChange={setSelectedClients}>
+    >
+      {configs.map(config => <Item key={config.id}>{config.name}</Item>)}
+    </ListView> }
+    <Button isDisabled={loading || error} variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
+    { previewUrls &&
+      <>
+        <Divider size={'s'} />
+        {
+          previewUrls.map((preview) => <img key={preview.thumb450} src={preview.thumb450} alt={'preview'} />)
         }
-        { !loading && !error && configs &&
-          <>
-            Select the clients to test:
-            <ListView
-              aria-label={'list of possible clients'}
-              maxHeight={'static-size-6000'}
-              items={configs}
-              label={"Clients to test"}
-              selectionMode={"multiple"}
-              selectedKeys={selectedClients}
-              onSelectionChange={setSelectedClients}>
-              {configs.map(config => <Item key={config.id}>{config.name}</Item>) }
-            </ListView>
-          </>}
-        <Button isDisabled={loading} variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
-        {!loading && !error && previewUrls &&
-          <>
-            <Divider size={'s'} />
-            {
-              previewUrls.map((preview) => <img key={preview.thumb450} src={preview.thumb450} alt={'preview'} />)
-            }
-          </>
-        }
-      </Flex>
-    </View>
-  </Provider>
+      </>
+    }
+  </>
 }
 
 export default App
