@@ -337,6 +337,9 @@ function decoratePersonalization(main) {
         const nlExpr = `/${expr.replaceAll('.', '/')}`;
         const name = nlExpr.split('/').pop();
         return `<span class="acr-field nl-dce-field nl-dce-done" data-nl-expr="${nlExpr}" data-nl-type="string" data-contenteditable="false" contenteditable="false">${name}</span>`;
+      } else if (window.personalizationType === 'adobe-campaign-classic') {
+        const nlExpr = `<%= ${expr} %>`;
+        return `<span data-nl-expr="${expr}">${nlExpr}</span>`;
       }
       // fallback, no pers type, don't unwrap
       unwrap = false;

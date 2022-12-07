@@ -31,6 +31,17 @@ const Simulate = ({ personalizationType, emailBody }) => {
                 label: span.innerText,
                 value: span.innerText
             }));
+        } else if (personalizationType === 'adobe-campaign-classic') {
+            items = [...emailBody.querySelectorAll('[data-nl-expr]')].map((span) => {
+                const { nlExpr } = span.dataset;
+                const label = nlExpr.split('.').pop();
+                return {
+                    el: span,
+                    expr: nlExpr,
+                    label: label,
+                    value: label
+                }
+            });
         }
 
 
@@ -49,9 +60,7 @@ const Simulate = ({ personalizationType, emailBody }) => {
         Object.entries(values).forEach(([key, value]) => {
             const item = items.find((item) => item.expr === key);
             if (item && item.el) {
-                if (personalizationType === 'adobe-campaign-standard') {
-                    item.el.innerText = value;
-                }
+                item.el.innerText = value;
             }
         });
     }, [values])
