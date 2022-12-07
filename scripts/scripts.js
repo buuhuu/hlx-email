@@ -293,7 +293,7 @@ async function toMjml(main) {
   const mjml = mjmlTemplate(mjmlStyles + head, body, [...document.body.classList]);
   const mjml2html = await mjml2html$;
   console.log(mjml);
-  const { html } = mjml2html(mjml);
+  const { html } = mjml2html(mjml, { minify: true });
   const iframe = document.createElement('iframe');
   iframe.srcdoc = html;
   iframe.width = '100%';
