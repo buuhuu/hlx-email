@@ -16,6 +16,10 @@ mj-all {
     line-height: 1.4;
 }
 
+mj-section {
+    padding: 0 20px;
+}
+
 mj-body {
     background-color: #eee;
 }

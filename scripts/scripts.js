@@ -281,17 +281,12 @@ async function toMjml(main) {
 }
 
 function buildHeroBlock(main) {
-  const h1 = main.querySelector('h1');
   const picture = main.querySelector('picture');
-  // eslint-disable-next-line no-bitwise
-  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    const elems = [picture, h1];
-    if (h1.nextElementSibling) {
-      elems.push(h1.nextElementSibling);
-    }
-    const section = document.createElement('div');
-    section.append(buildBlock('hero', { elems }));
-    main.prepend(section);
+  if (picture.parentElement === main.firstElementChild 
+    && picture.parentElement.firstElementChild === picture) {
+    // picture is the first element on the page
+    const elems = [...picture.parentElement.children];
+    picture.parentElement.append(buildBlock('hero', { elems }));
   }
 }
 
@@ -301,9 +296,7 @@ function buildHeroBlock(main) {
  */
 function buildAutoBlocks(main) {
   try {
-    if (!document.body.classList.contains('no-hero')) {
-      buildHeroBlock(main);
-    }
+    buildHeroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
