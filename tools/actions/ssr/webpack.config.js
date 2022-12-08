@@ -13,12 +13,15 @@ module.exports = {
         },
     },
     resolve: {
+        alias: {
+            'uglify-js': false
+        },
         fallback: {
             // used by jsdom to support <canvas>
             'canvas': false,
             // used by jsdom for websocket support
             'bufferutil': false,
-            'utf-8-validate': false
+            'utf-8-validate': false,
         }
     },
     plugins: [

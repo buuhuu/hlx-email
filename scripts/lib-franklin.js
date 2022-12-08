@@ -10,6 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
+let window = {};
+let document = {};
+
 /**
  * log RUM if part of the sample.
  * @param {string} checkpoint identifies the checkpoint in funnel
@@ -550,7 +553,9 @@ export function loadFooter(footer) {
  * init block utils
  */
 
-function init() {
+export function init(w) {
+  window = w;
+  document = w.document;
   window.hlx = window.hlx || {};
   window.hlx.codeBasePath = '';
 
@@ -576,6 +581,3 @@ function init() {
     sampleRUM('error', { source: event.filename, target: event.lineno });
   });
 }
-
-init();
-

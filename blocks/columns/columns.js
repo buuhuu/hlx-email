@@ -1,4 +1,4 @@
-import { decorateDefaultContent } from '../../scripts/scripts.js';
+import { decorateDefaultContent } from '../../scripts/functions.js';
 
 export default function decorate(block) {
   let mjml = `<mj-section css-class="colums-cols-${block.firstElementChild.children.length}">`;

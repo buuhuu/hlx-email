@@ -100,6 +100,13 @@
  */
 
 /*!
+ * HTML Parser By John Resig (ejohn.org)
+ * Modified by Juriy "kangax" Zaytsev
+ * Original code by Erik Arvidsson, Mozilla Public License
+ * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
+ */
+
+/*!
  * mime-db
  * Copyright(c) 2014 Jonathan Ong
  * Copyright(c) 2015-2022 Douglas Christopher Wilson
@@ -114,6 +121,8 @@
  */
 
 /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
+
+/*! https://mths.be/he v1.2.0 by @mathias | MIT license */
 
 /*! node-domexception. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
 
@@ -139,4 +148,12 @@
  * @author Louis-Dominique Dubeau
  * @license MIT
  * @copyright Louis-Dominique Dubeau
+ */
+
+/**
+ * Returns an array of the selectors.
+ *
+ * @license Sizzle CSS Selector Engine - MIT
+ * @param {String} selectorText from mensch
+ * @api public
  */
