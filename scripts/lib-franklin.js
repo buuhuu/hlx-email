@@ -557,7 +557,7 @@ function init() {
   const scriptEl = document.querySelector('script[src$="/scripts/scripts.js"]');
   if (scriptEl) {
     try {
-      [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
+      [window.hlx.codeBasePath] = new window.URL(scriptEl.src).pathname.split('/scripts/scripts.js');
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);
@@ -578,3 +578,4 @@ function init() {
 }
 
 init();
+

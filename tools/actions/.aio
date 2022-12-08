@@ -1,0 +1,23 @@
+{
+  "project": {
+    "id": "4566206088344881194",
+    "name": "franklinEmail",
+    "title": "Franklin Email Garage Week",
+    "org": {
+      "id": "53444",
+      "name": "Adobe IO",
+      "ims_org_id": "BA3E5257595416580A495C6D@AdobeOrg"
+    },
+    "workspace": {
+      "id": "4566206088344887009",
+      "name": "Stage",
+      "title": "Stage",
+      "action_url": "https://53444-franklinemail-stage.adobeioruntime.net",
+      "app_url": "https://53444-franklinemail-stage.adobeio-static.net",
+      "details": {
+        "credentials": [],
+        "services": []
+      }
+    }
+  }
+}

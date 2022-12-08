@@ -40,12 +40,16 @@ async function loadScript(src) {
 }
 
 async function loadMjml(src = 'https://unpkg.com/mjml-browser@4.13.0/lib/index.js') {
-  await loadScript(src);
+  if (!window.mjml) {
+    await loadScript(src);
+  }
   return window.mjml;
 }
 
 async function loadLess(src = 'https://unpkg.com/less@4.1.3/dist/less.min.js') {
-  await loadScript(src);
+  if (!window.less) {
+    await loadScript(src);
+  }
   return window.less;
 }
 
@@ -56,8 +60,7 @@ async function loadBlock(block) {
   if (status !== 'loading' && status !== 'loaded') {
     block.setAttribute('data-block-status', 'loading');
     try {
-      const blockFolder = `blocks/${blockName}`;
-      const blockModule = await import(`../${blockFolder}/${blockName}.js`);
+      const blockModule = await import(`../blocks/${blockName}/${blockName}.js`);
       if (!blockModule.default) {
         throw new Error('default export not found');
       }
@@ -72,14 +75,14 @@ async function loadBlock(block) {
       };
       if (blockModule.styles) {
         decorator.styles = blockModule.styles
-          .map((stylesheet) => `/${blockFolder}/${stylesheet}`);
+          .map((stylesheet) => `/blocks/${blockName}/${stylesheet}`);
       }
       if (blockModule.inlineStyles) {
         decorator.inlineStyles = blockModule.inlineStyles
-          .map((stylesheet) => `/${blockFolder}/${stylesheet}`);
+          .map((stylesheet) => `/blocks/${blockName}/${stylesheet}`);
       }
       if (!blockModule.styles && !blockModule.inlineStyles) {
-        decorator.inlineStyles = [`/${blockFolder}/${blockName}.css`];
+        decorator.inlineStyles = [`/blocks/${blockName}/${blockName}.css`];
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -255,7 +258,7 @@ export function decorateDefaultContent(wrapper) {
     }, '');
 }
 
-async function toMjml(main) {
+export async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
     if (wrapper.matches('.default-content-wrapper')) {
@@ -291,15 +294,31 @@ async function toMjml(main) {
   const [body, head] = reduceMjml(await main$);
 
   const mjml = mjmlTemplate(mjmlStyles + head, body, [...document.body.classList]);
+  console.debug(mjml);
+
   const mjml2html = await mjml2html$;
-  console.log(mjml);
   const { html } = mjml2html(mjml, { minify: true });
-  const iframe = document.createElement('iframe');
-  iframe.srcdoc = html;
-  iframe.width = '100%';
-  iframe.height = '100%';
-  iframe.id = '__emailFrame';
-  document.body.insertAdjacentElement('beforeend', iframe);
+  
+  let frame = document.getElementById('__emailFrame');
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.srcdoc = html;
+    frame.width = '100%';
+    frame.height = '100%';
+    frame.id = '__emailFrame';
+    document.body.insertAdjacentElement('beforeend', frame);
+  } else {
+    frame.srcdoc = html;
+  }
+  
+  window.dispatchEvent(new window.CustomEvent('mjml2html', {
+    detail: {
+      mjml,
+      html
+    }
+  }))
+
+  return html;
 }
 
 function buildHeroBlock(main) {
@@ -328,7 +347,7 @@ function buildAutoBlocks(main) {
 
 function decoratePersonalization(main) {
   main.querySelectorAll('em').forEach((em) => {
-    let text = em.innerText.trim();
+    let text = em.textContent.trim();
     let content = '';
     let unwrap = true;
     let match;
@@ -374,33 +393,29 @@ function decoratePersonalization(main) {
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
-export function decorateMain(main) {
+export async function decorateMain(main) {
+  decorateTemplateAndTheme();
   decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
   decoratePersonalization(main);
-  toMjml(main);
+  await toMjml(main);
 }
 
 /**
  * loads everything needed to get to LCP.
  */
 async function loadEager(doc) {
-  decorateTemplateAndTheme();
   const main = doc.querySelector('main');
-  if (main) {
-    decorateMain(main);
-    await waitForLCP([]);
-  }
+  await decorateMain(main);
+  await waitForLCP([]);
 
   if (document.querySelector('helix-sidekick')) {
-    import('../tools/sidekick/plugins.js');
+    await import('../tools/sidekick/plugins.js');
   } else {
-    document.addEventListener('helix-sidekick-ready', () => {
-      import('../tools/sidekick/plugins.js');
-    }, { once: true });
+    document.addEventListener('helix-sidekick-ready', () => import('../tools/sidekick/plugins.js'), { once: true });
   }
 }
 
@@ -428,7 +443,7 @@ async function loadLazy(/* doc */) {
   sampleRUM('lazy');
 }
 
-async function loadPage() {
+export async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
 }
