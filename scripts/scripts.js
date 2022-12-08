@@ -1,6 +1,7 @@
 import {
   buildBlock,
   decorateBlocks,
+  decorateButtons,
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
@@ -10,13 +11,14 @@ import {
 
 window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information here
 window.thridPartyScripts = [];
+window.personalizationType = 'adobe-campaign-standard';
 
-const mjmlTemplate = (mjmlHead, mjmlBody) => `
+const mjmlTemplate = (mjmlHead, mjmlBody, bodyCssClasses = []) => `
 <mjml>
   <mj-head>
     ${mjmlHead}
   </mj-head>
-  <mj-body>
+  <mj-body css-class="${bodyCssClasses.join(' ')}">
     ${mjmlBody}
   </mj-body>
 </mjml>
@@ -37,12 +39,12 @@ async function loadScript(src) {
   return window.thridPartyScripts[src];
 }
 
-async function loadMjml(src = 'https://unpkg.com/mjml-browser/lib/index.js') {
+async function loadMjml(src = 'https://unpkg.com/mjml-browser@4.13.0/lib/index.js') {
   await loadScript(src);
   return window.mjml;
 }
 
-async function loadLess(src = 'https://unpkg.com/less/dist/less.min.js') {
+async function loadLess(src = 'https://unpkg.com/less@4.1.3/dist/less.min.js') {
   await loadScript(src);
   return window.less;
 }
@@ -104,20 +106,38 @@ async function parseStyle(css) {
       // get the mj-* selectors
       const defs = rule.selectors
         .map((selector) => {
-          const first = selector.elements[0];
-          if (first && first.value && first.value.indexOf('mj-') !== 0) {
-            return null;
-          }
-          const second = selector.elements[1];
-          if (second && second.value && second.value.charAt(0) === '.') {
-            if (first.value !== 'mj-all') {
-              // mj-class is not element specific
-              console.log('className not supported for mj elements other than mj-all');
-              return null;
+          const isMjTag = (element) => element && element.value.indexOf('mj-') === 0;
+          const isMjClass = (element) => element && element.value.indexOf('.mj-') === 0;
+          const toDef = (first, second) => {
+            if (isMjClass(first)) {
+              if (second || first.value.substring(1).indexOf('.') > 0) {
+                console.log('chaining mj-class selectors is not supported');
+                return null;
+              }
+              return { mjEl: 'mj-all', mjClass: first.value.substring(1) };
             }
-            return { mjEl: first.value, mjClass: second.value.substring(1) };
+            if (isMjTag(first)) {
+              if (second && second.value && second.value.charAt(0) === '.') {
+                if (first.value !== 'mj-all') {
+                  // mj-class is not element specific
+                  console.log('className not supported for mj elements other than mj-all');
+                  return null;
+                }
+                return { mjEl: first.value, mjClass: second.value.substring(1) };
+              }
+              return { mjEl: first.value };
+            }
           }
-          return { mjEl: first.value };
+          const first = selector.elements[0];
+          const second = selector.elements[1];
+          const def = toDef(first, second);
+          if (def) {
+            return def;
+          }
+          if ((isMjTag(second) || isMjClass(second)) && document.body.matches(first.value)) {
+            return toDef(second, selector.elements[2]);
+          }
+          return null;
         })
         .filter((def) => !!def);
 
@@ -129,8 +149,9 @@ async function parseStyle(css) {
           .map((declaration) => {
             const [{ value: name }] = declaration.name;
             let value = declaration.value.toCSS();
-            if (value.charAt(0) === '\'') value = value.substring(1);
-            if (value.charAt(value.length - 1) === '\'') value = value.substring(0, value.length - 1);
+            if (value.charAt(0) === '\'' && value.charAt(value.length - 1) === '\'') {
+              value = value.substring(1, value.length - 1);
+            }
             return [name, value];
           })
           .filter((decl) => !!decl)
@@ -179,7 +200,7 @@ async function loadStyles({ styles, inlineStyles }) {
         }
         if (parsedStyles) {
           mjml += `
-            <mj-style${inline ? ' inline="true"' : ''}>
+            <mj-style${inline ? ' inline="inline"' : ''}>
               ${parsedStyles}
             </mj-style>
           `;
@@ -211,14 +232,39 @@ function reduceMjml(mjml) {
   );
 }
 
+export function decorateDefaultContent(wrapper) {
+  return [...wrapper.children]
+    .reduce((mjml, par) => {
+      const img = par.querySelector('img');
+      if (img) {
+        return mjml + `<mj-image css-class="image" src="${img.src}" />`;
+      }
+      if (par.matches('.button-container')) {
+        const link = par.querySelector(':scope > a');
+        return mjml + `
+              <mj-button css-class="button" href="${link.href}">
+                ${link.innerText}
+              </mj-button>
+          `;
+      }
+      if (mjml.endsWith('</mj-text>')) {
+        return mjml.substring(0, mjml.length - 10) + `${par.outerHTML}</mj-text>`;
+      } else {
+        return mjml + `<mj-text>${par.outerHTML}</mj-text>`;
+      }
+    }, '');
+}
+
 async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')].map(async (section) => reduceMjml(await Promise.all([...section.children].map(async (wrapper) => {
     if (wrapper.matches('.default-content-wrapper')) {
+      const cssClasses = [...section.classList]; 
+      const mjClasses = cssClasses.filter((cls) => cls !== 'section').map((cls) => `mj-${cls}`);
       return Promise.resolve([`
-          <mj-section>
+          <mj-section css-class="${cssClasses.join(' ')}" mj-class="${mjClasses.join(' ')}">
             <mj-column>
-              <mj-text>${wrapper.innerHTML}</mj-text>
+              ${decorateDefaultContent(wrapper)}
             </mj-column>
           </mj-section>
         `]);
@@ -244,29 +290,26 @@ async function toMjml(main) {
   const mjmlStyles = await styles$;
   const [body, head] = reduceMjml(await main$);
 
-  const mjml = mjmlTemplate(mjmlStyles + head, body);
+  const mjml = mjmlTemplate(mjmlStyles + head, body, [...document.body.classList]);
   const mjml2html = await mjml2html$;
   console.log(mjml);
-  const { html } = mjml2html(mjml);
+  const { html } = mjml2html(mjml, { minify: true });
   const iframe = document.createElement('iframe');
   iframe.srcdoc = html;
   iframe.width = '100%';
   iframe.height = '100%';
-  document.body.insertAdjacentElement('beforebegin', iframe);
+  iframe.id = '__emailFrame';
+  document.body.insertAdjacentElement('beforeend', iframe);
 }
 
 function buildHeroBlock(main) {
-  const h1 = main.querySelector('h1');
   const picture = main.querySelector('picture');
-  // eslint-disable-next-line no-bitwise
-  if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
-    const elems = [picture, h1];
-    if (h1.nextElementSibling) {
-      elems.push(h1.nextElementSibling);
-    }
-    const section = document.createElement('div');
-    section.append(buildBlock('hero', { elems }));
-    main.prepend(section);
+  if (picture
+    && picture.parentElement === main.firstElementChild
+    && picture.parentElement.firstElementChild === picture) {
+    // picture is the first element on the page
+    const elems = [...picture.parentElement.children];
+    picture.parentElement.append(buildBlock('hero', { elems }));
   }
 }
 
@@ -283,16 +326,61 @@ function buildAutoBlocks(main) {
   }
 }
 
+function decoratePersonalization(main) {
+  main.querySelectorAll('em').forEach((em) => {
+    let text = em.innerText.trim();
+    let content = '';
+    let unwrap = true;
+    let match;
+
+    const transform = (expr) => {
+      if (window.personalizationType === 'adobe-campaign-standard') {
+        const nlExpr = `/${expr.replaceAll('.', '/')}`;
+        const name = nlExpr.split('/').pop();
+        return `<span class="acr-field nl-dce-field nl-dce-done" data-nl-expr="${nlExpr}" data-nl-type="string" data-contenteditable="false" contenteditable="false">${name}</span>`;
+      } else if (window.personalizationType === 'adobe-campaign-classic') {
+        const nlExpr = `<%= ${expr} %>`;
+        return `<span data-nl-expr="${expr}">${nlExpr}</span>`;
+      }
+      // fallback, no pers type, don't unwrap
+      unwrap = false;
+      return expr;
+    };
+
+    // eslint-disable-next-line no-cond-assign
+    while (match = text.match(/[a-zA-Z0-9]+\.[a-zA-Z0-9.]+/)) {
+      if (match.index > 0) {
+        const fragment = text.substring(0, match.index);
+        content += fragment;
+        // unwrap only if there are only non-word characters in between the expressions
+        unwrap = unwrap && !!fragment.match(/^\W+$/);
+      }
+
+      content += transform(match[0]);
+      text = text.substring(match.index + match[0].length);
+    }
+
+    if (unwrap) {
+      em.insertAdjacentHTML('afterend', content);
+      em.remove();
+    } else {
+      em.innerHTML = content;
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decoratePersonalization(main);
   toMjml(main);
 }
 
@@ -305,6 +393,14 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     await waitForLCP([]);
+  }
+
+  if (document.querySelector('helix-sidekick')) {
+    import('../tools/sidekick/plugins.js');
+  } else {
+    document.addEventListener('helix-sidekick-ready', () => {
+      import('../tools/sidekick/plugins.js');
+    }, { once: true });
   }
 }
 

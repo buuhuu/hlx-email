@@ -9,3 +9,23 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+mj-all {
+    padding: 0;
+    font-family: 'Adobe Clean', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+mj-section {
+    padding: 0 10px;
+    css-class: 'section';
+}
+
+mj-body {
+    background-color: #eee;
+}
+
+.aem-sites-sprint-summary .mj-highlight {
+    background-color: #bfbfbf;
+    padding: 0 10px;
+}

@@ -2,24 +2,55 @@
     "project": "hlx-email",
     "host": "main--hlx-email--buuhuu.hlx.page",
     "byocdn": true,
-    "devMode": true,
-    "plugins": [{
-        "id": "personalization",
-        "title": "Personalization",
-        "environments": [
-            "edit"
-        ],
-        "url": "https://personalization--hlx-email--buuhuu.hlx.page/tools/personalization/dist/index.html",
-        "isPalette": true,
-        "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
-    },{
-        "id": "litmus",
-        "title": "Litmus Email Testing",
-        "environments": [
-            "preview"
-        ],
-        "url": "https://litmus--hlx-email--buuhuu.hlx.page/tools/litmus/dist/index.html",
-        "isPalette": true,
-        "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
-    }]
+    "plugins": [
+        {
+            "id": "personalization",
+            "title": "Personalization",
+            "environments": [
+                "edit"
+            ],
+            "url": "/tools/personalization/dist/index.html",
+            "isPalette": true,
+            "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
+        },
+        {
+            "id": "simulate",
+            "title": "Simulate",
+            "environments": [
+                "dev",
+                "preview"
+            ],
+            "url": "/tools/simulate/dist/index.html",
+            "isPalette": true,
+            "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
+        },
+        {
+            "id": "copyHtml",
+            "title": "Copy E-Mail",
+            "environments": [
+                "dev",
+                "preview"
+            ],
+            "event": "copyHtml"
+        },
+        {
+            "id": "downloadHtml",
+            "title": "Download E-Mail",
+            "environments": [
+                "dev",
+                "preview"
+            ],
+            "event": "downloadHtml"
+        },{
+            "id": "litmus",
+            "title": "Litmus Email Testing",
+            "environments": [
+                "dev",
+                "preview"
+            ],
+            "url": "https://litmus--hlx-email--buuhuu.hlx.page/tools/litmus/dist/index.html",
+            "isPalette": true,
+            "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 480px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
+        }
+    ]
 }

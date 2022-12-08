@@ -1,0 +1,29 @@
+{
+  "name": "franklin4email-personalization",
+  "version": "1.0.0",
+  "description": "",
+  "source": "src/index.html",
+  "scripts": {
+    "watch": "parcel watch --public-url '.'",
+    "prebuild": "rimraf dist/",
+    "build": "parcel build --public-url '.' --dist-dir dist src/index.html",
+    "worker:start": "wrangler dev",
+    "worker:deploy": "wrangler publish"
+  },
+  "author": "Dirk Rudolph <drudolph@adobe.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@adobe/react-spectrum": "^3.23.0",
+    "@spectrum-icons/illustrations": "^3.5.1",
+    "@spectrum-icons/workflow": "^4.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-inline-string": "^2.8.0",
+    "parcel": "^2.8.0",
+    "process": "^0.11.10",
+    "rimraf": "^3.0.2",
+    "wrangler": "2.5.0"
+  }
+}
