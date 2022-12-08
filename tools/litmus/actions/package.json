@@ -1,0 +1,6 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  }
+}

@@ -1,6 +1,11 @@
 .hlx/*
 coverage/*
 logs/*
-node_modules/*
+**/node_modules/*
 
 helix-importer-ui
+
+tools/litmus/node_modules
+
+**/.aio
+**/.env
