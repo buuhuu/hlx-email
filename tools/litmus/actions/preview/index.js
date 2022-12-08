@@ -1,14 +1,13 @@
 const { default: fetch } = require('node-fetch')
 
 const baseUrl = 'https://instant-api.litmus.com/v1';
-const litmusToken = process.env.LITMUS_TOKEN;
 
-async function createLitmusEmail(htmlString) {
+async function createLitmusEmail(htmlString, litmusToken) {
   const response = await fetch(`${baseUrl}/emails`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${new Buffer(`${litmusToken}:`).toString('base64')}`
+      'Authorization': `Basic ${Buffer.from(`${litmusToken}:`).toString('base64')}`
     },
     body: JSON.stringify({
       html_text: htmlString
@@ -29,8 +28,8 @@ async function createLitmusEmail(htmlString) {
   return emailGuid
 }
 
-async function getEmailPreview(guid, client) {
-  const response = await fetch(`${baseUrl}/emails/${guid}/preview/${client}`, {
+async function getEmailPreview(guid, client, litmusToken) {
+  const response = await fetch(`${baseUrl}/emails/${guid}/previews/${client}`, {
     headers: {
       'Authorization': `Basic ${new Buffer(`${litmusToken}:`).toString('base64')}`
     }
@@ -44,17 +43,27 @@ async function getEmailPreview(guid, client) {
 }
 
 async function main(params) {
-  // return {statusCode: 200, body: "hello world"}
   const { html, clients } = params;
+
+  const litmusToken = params.LITMUS_TOKEN;
+
+  if (!litmusToken) {
+    return { error: { statusCode: 403, body: { error: 'No token provided' }}}
+  }
 
   if (!html || !clients) {
     return { error: { statusCode: 400, body: { error: 'Missing html or client parameters' } } }
   }
 
   try {
-    const guid = await createLitmusEmail(html)
+    let guid = params.guid;
+
+    if (!guid) {
+      guid = await createLitmusEmail(html, litmusToken)
+    }
+
     const clientPromises = clients.map((client) => {
-      return getEmailPreview(guid, client)
+      return getEmailPreview(guid, client, litmusToken)
     })
     const responses = await Promise.all(clientPromises)
 

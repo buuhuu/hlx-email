@@ -12,8 +12,11 @@ import ErrorImage from "@spectrum-icons/illustrations/Error"
 import React, { useEffect, useState } from 'react';
 
 function getEmailHTML() {
-  // TODO get from iframe
-  return '<h1 style="{ color: green; }">Hello</h1>'
+  const iframe = document.getElementById('__emailFrame');
+  if (iframe) {
+    return iframe.srcdoc;
+  }
+  return '<h1>Failed to get email body - using dummy data</h1>'
 }
 
 const litmusBaseUrl = 'https://instant-api.litmus.com/v1';
@@ -59,28 +62,44 @@ function App() {
   const [previewUrls, setPreviewUrls] = useState(null)
 
   function handlePreview() {
+    const clientsInOrder = [...selectedClients]
     setLoading(true)
-    performPreview([...selectedClients])
-      .then((previewUrls) => setPreviewUrls(previewUrls))
+    performPreview(clientsInOrder)
+      .then((previewUrls) => {
+        Object.keys(previewUrls).forEach((key, i) => {
+          console.log(clientsInOrder[i])
+          previewUrls[key] = { ...previewUrls[key], title: clientsInOrder[i]}
+        })
+        console.log(previewUrls)
+        setPreviewUrls(previewUrls);
+      })
       .catch((error) => {
         setError(error);
       })
       .finally(() => setLoading(false))
   }
 
-  function handleRestart() {
-    setLoading(false)
-    setError(null)
-  }
-
-  useEffect(() => {
+  function getPreviews() {
+    setLoading(true)
     getClientConfigurations().then((configs) => {
       const mappedConfigs = Object.entries(configs)
         .map(([key, value]) => ({ name: `${value.name} (${value.platform})`, id: key }))
         .sort((a, b) => a.name > b.name)
       setConfigs(mappedConfigs)
       setLoading(false)
-    }).catch(e => setError(e))
+    }).catch(e => {
+      console.log(e)
+      setError(e);
+    })
+  }
+
+  function handleRestart() {
+    setError(null)
+    getPreviews()
+  }
+
+  useEffect(() => {
+    getPreviews()
   }, [])
 
   if (error) {
@@ -114,9 +133,17 @@ function App() {
     { previewUrls &&
       <>
         <Divider size={'s'} />
-        {
-          previewUrls.map((preview) => <img key={preview.thumb450} src={preview.thumb450} alt={'preview'} />)
-        }
+        <Flex gap={'20px'} direction={'column'}>
+          {
+            previewUrls.map((preview) => <a href={preview.full_url} target={'__blank'}>
+              <Heading level={3}>{preview.title}</Heading>
+              <img style={{
+                maxWidth: '450px',
+                width: '100%'
+              }} key={preview.thumb450_url} src={preview.thumb450_url} alt={'preview'} />
+            </a>)
+          }
+        </Flex>
       </>
     }
   </>
