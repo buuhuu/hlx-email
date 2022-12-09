@@ -1,6 +1,7 @@
 helix-importer-ui
 
 tools/actions
+tools/litmus
 tools/personalization
 tools/simulate
 tools/sidekick
