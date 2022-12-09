@@ -267,14 +267,13 @@ export async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')]
     .map(async (section) => {
-      const [sectionBody, sectionHead ] = reduceMjml(await Promise.all([...section.children]
+      const [sectionBody, sectionHead] = reduceMjml(await Promise.all([...section.children]
         .map(async (wrapper) => {
           if (wrapper.matches('.default-content-wrapper')) {
             return Promise.resolve([`
             <mj-section mj-class="mj-content-section">
               <mj-column mj-class="mj-content-column">
-                ${decorateDefaultContent(
-              wrapper,
+                ${decorateDefaultContent(wrapper,
               { textClass: 'mj-content-text', imageClass: 'mj-content-image', buttonClass: 'mj-content-button' }
             )}
               </mj-column>
@@ -295,10 +294,10 @@ export async function toMjml(main) {
           return Promise.resolve([]);
         })));
 
-        return [
-          `<mj-wrapper>${sectionBody}</mj-wrapper>`,
-          sectionHead
-        ];
+      return [
+        `<mj-wrapper>${sectionBody}</mj-wrapper>`,
+        sectionHead
+      ];
     }));
   const styles$ = loadStyles({
     styles: ['/styles/email-styles.css'],
@@ -328,6 +327,17 @@ function buildHeroBlock(main) {
   }
 }
 
+function buildIntroBlock(main) {
+  const h1 = main.firstElementChild.querySelector(':scope > h1');
+  if (h1) {
+    const textSiblings = [...main.firstElementChild.querySelectorAll(':scope > :where(p,h1,h2,h3,h4,h5,h6,ul,ol)')];
+    const placeholder = document.createElement('div');
+    h1.replaceWith(placeholder);
+    const block = buildBlock('intro', { elems: textSiblings });
+    placeholder.replaceWith(block);
+  }
+}
+
 /**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
@@ -335,6 +345,7 @@ function buildHeroBlock(main) {
 function buildAutoBlocks(main) {
   try {
     buildHeroBlock(main);
+    buildIntroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);

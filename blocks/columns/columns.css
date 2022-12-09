@@ -1,0 +1,11 @@
+.mj-columns-with-paddings-col {
+    padding: 0 25px;
+}
+
+.mj-columns-with-paddings-col-first {
+    padding-left: 50px;
+}
+
+.mj-columns-with-paddings-col-last {
+    padding-right: 50px;
+}

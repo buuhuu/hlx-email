@@ -32,31 +32,16 @@ mj-button {
     font-weight: 700;
     line-height: 13.2px;
     text-transform: uppercase;
+    width: 180px;
+    padding-top: 25px;
 }
 
 mj-wrapper {
     padding-bottom: 40px;
 }
 
-.mj-content-section {
-    padding: 0 20px;
-    text-align: center;
-}
-
 .mj-content-column {
-    background-color: white;
-    padding: 30px;
-}
-
-.mj-content-text {
-    align: center;
-    font-size: 14px;
-    color: #666666;
-}
-
-.mj-content-button {
-    padding-top: 25px;
-
+    padding: 0 20px;
 }
 
 .aem-sites-sprint-summary .mj-highlight {
