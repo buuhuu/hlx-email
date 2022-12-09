@@ -1,0 +1,44 @@
+.mj-teaser-section {
+    background-color: black;
+}
+
+.mj-teaser-image-column {
+    vertical-align: middle;
+}
+
+.mj-teaser-text-column {
+    background-color: black;
+    inner-background-color: black;
+    vertical-align: middle;
+    padding: 0 30px;
+}
+
+.mj-teaser-text {
+    color: white;
+    font-size: 14px;
+    css-class: 'teaser-text';
+}
+
+.mj-teaser-button {
+    inner-padding: 20px 0;
+    align: right;
+    css-class: 'teaser-button';
+    letter-spacing: 0.3px;
+}
+
+.teaser-text,
+.teaser-text h2 {
+    color: white
+}
+
+.teaser-text h2 {
+    padding-bottom: 5px;   
+}
+
+.teaser-button span {
+    line-height: 34px;
+}
+
+.teaser-button img {
+    vertical-align: middle;
+}

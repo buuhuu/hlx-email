@@ -90,12 +90,13 @@ const downloadHtml = () => {
 
       const eml = to + '\n' 
         + subject + '\n'
-        + 'Content-Type: text/html\n'
+        + 'Content-Type: text/html;charset=utf-8\n'
         + 'X-Unsent: 1'+'\n'
         + '\n'
         + '\n'
-        + html
-      const blob = new Blob([eml], {type: 'text/plain'});
+        + html;
+      const bytes = new TextEncoder().encode(eml);
+      const blob = new Blob([bytes], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
 
       const fileLink = document.createElement('a');

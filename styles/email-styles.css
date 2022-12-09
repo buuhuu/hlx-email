@@ -31,6 +31,7 @@ mj-button {
     font-size: 11px;
     font-weight: 700;
     line-height: 13.2px;
+    text-transform: uppercase;
 }
 
 mj-wrapper {
