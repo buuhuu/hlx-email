@@ -1,7 +1,5 @@
 {
     "project": "hlx-email",
-    "host": "main--hlx-email--buuhuu.hlx.page",
-    "byocdn": true,
     "plugins": [
         {
             "id": "personalization",
