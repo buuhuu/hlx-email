@@ -11,12 +11,18 @@ import {
 import ErrorImage from "@spectrum-icons/illustrations/Error"
 import React, { useEffect, useState } from 'react';
 
-function getEmailHTML() {
-  const iframe = top.document.getElementById('__emailFrame');
-  if (iframe) {
-    return iframe.srcdoc;
-  }
-  return '<h1>Failed to get email body - using dummy data</h1>'
+async function getEmailHTML() {
+  return new Promise((resolve, reject) => {
+    window.addEventListener('message', ({ data }) => {
+        if (data.indexOf('mjml2html:') === 0) {
+          resolve(data.substring(10));
+        } else {
+          reject();
+        }
+    })
+
+    top.postMessage('mjml2html', '*');
+  })
 }
 
 const litmusBaseUrl = 'https://instant-api.litmus.com/v1';
@@ -42,7 +48,7 @@ async function performPreview(clients) {
   const response = await fetch(`${proxyBaseUrl}/preview`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ html: getEmailHTML(), clients })
+    body: JSON.stringify({ html: await getEmailHTML(), clients })
   })
 
   if (!response.ok) {

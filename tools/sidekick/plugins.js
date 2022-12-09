@@ -120,3 +120,10 @@ const downloadHtml = () => {
 const sk = document.querySelector('helix-sidekick');
 sk.addEventListener('custom:copyHtml', copyHtml);
 sk.addEventListener('custom:downloadHtml', downloadHtml);
+
+window.addEventListener('message', ({ data, origin, source }) => {
+  if (data === 'mjml2html' && origin.match('localhost(:\\d+)?$|.*\\.hlx\\.(page|live)$')) {
+    const iframe = document.getElementById('__emailFrame');
+    source.postMessage('mjml2html:' + (iframe ? iframe.srcdoc : ''), origin);
+  }
+})
