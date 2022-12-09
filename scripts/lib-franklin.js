@@ -10,6 +10,9 @@
  * governing permissions and limitations under the License.
  */
 
+let window = {};
+let document = {};
+
 /**
  * log RUM if part of the sample.
  * @param {string} checkpoint identifies the checkpoint in funnel
@@ -550,14 +553,16 @@ export function loadFooter(footer) {
  * init block utils
  */
 
-function init() {
+export function init(w) {
+  window = w;
+  document = w.document;
   window.hlx = window.hlx || {};
   window.hlx.codeBasePath = '';
 
   const scriptEl = document.querySelector('script[src$="/scripts/scripts.js"]');
   if (scriptEl) {
     try {
-      [window.hlx.codeBasePath] = new URL(scriptEl.src).pathname.split('/scripts/scripts.js');
+      [window.hlx.codeBasePath] = new window.URL(scriptEl.src).pathname.split('/scripts/scripts.js');
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);
@@ -576,5 +581,3 @@ function init() {
     sampleRUM('error', { source: event.filename, target: event.lineno });
   });
 }
-
-init();
