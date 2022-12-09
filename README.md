@@ -19,7 +19,7 @@ E-Mail client.
 As with other Franklin projects the decoration of the DOM happens clientside, in the author's browsers when previewing
 a document.
 
-As usual the project scripts decorate the DOM as it gets served from the franklin html pipeline (icosn, auto-blocking, 
+As usual the project scripts decorate the DOM as it gets served from the franklin html pipeline (icons, auto-blocking, 
 sections, blocks, ...). Afterwards the decorated DOM is used to create an mjml E-Mail template, which gets transpiled
 into E-Mail friendly HTML. This HTML is  than presented to the user in an iframe that fully covers the original page. 
 
@@ -137,10 +137,6 @@ to the mj-head as mjml attributes instead. This includes:
     </body>
   </html>
   ```
-
-
-
-
 
 ## Installation
 
