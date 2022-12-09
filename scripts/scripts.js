@@ -1,7 +1,7 @@
 import { sampleRUM, waitForLCP } from './lib-franklin.js';
-import { decorateMain, toMjml, init } from './functions.js'
+import { decorateMain, toMjml, init } from './functions.js';
 
-window.hlx = window.hlx || {}
+window.hlx = window.hlx || {};
 window.hlx.RUM_GENERATION = 'hlx-email'; // add your RUM generation information here
 
 /**
@@ -15,14 +15,14 @@ async function loadEager(doc) {
   const html = await toMjml(main);
   let frame = document.getElementById('__emailFrame');
   if (!frame) {
-      frame = document.createElement('iframe');
-      frame.srcdoc = html;
-      frame.width = '100%';
-      frame.height = '100%';
-      frame.id = '__emailFrame';
-      document.body.insertAdjacentElement('beforeend', frame);
+    frame = document.createElement('iframe');
+    frame.srcdoc = html;
+    frame.width = '100%';
+    frame.height = '100%';
+    frame.id = '__emailFrame';
+    document.body.insertAdjacentElement('beforeend', frame);
   } else {
-      frame.srcdoc = html;
+    frame.srcdoc = html;
   }
 
   if (document.querySelector('helix-sidekick')) {
