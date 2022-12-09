@@ -57,6 +57,10 @@ function App() {
   const [configs, setConfigs] = useState(null)
   const [error, setError] = useState(null)
 
+  const configsAsArray = configs ? Object.entries(configs)
+    .map(([key, value]) => ({ name: `${value.name} (${value.platform})`, id: key }))
+    .sort((a, b) => a.name > b.name) : null;
+
   const [selectedClients, setSelectedClients] = useState(new Set([]))
 
   const [previewUrls, setPreviewUrls] = useState(null)
@@ -82,10 +86,7 @@ function App() {
   function getPreviews() {
     setLoading(true)
     getClientConfigurations().then((configs) => {
-      const mappedConfigs = Object.entries(configs)
-        .map(([key, value]) => ({ name: `${value.name} (${value.platform})`, id: key }))
-        .sort((a, b) => a.name > b.name)
-      setConfigs(mappedConfigs)
+      setConfigs(configs)
       setLoading(false)
     }).catch(e => {
       console.log(e)
@@ -121,13 +122,13 @@ function App() {
     { configs && <ListView
       aria-label={'list of possible clients'}
       maxHeight={'static-size-6000'}
-      items={configs}
+      items={configsAsArray}
       label={'Clients to test'}
       selectionMode={'multiple'}
       selectedKeys={selectedClients}
       onSelectionChange={setSelectedClients}>
     >
-      {configs.map(config => <Item key={config.id}>{config.name}</Item>)}
+      {configsAsArray.map(config => <Item key={config.id}>{config.name}</Item>)}
     </ListView> }
     <Button isDisabled={loading || error} variant={"accent"} onPress={handlePreview}>Simulate Selected Clients</Button>
     { previewUrls &&
@@ -136,7 +137,7 @@ function App() {
         <Flex gap={'20px'} direction={'column'}>
           {
             previewUrls.map((preview) => <a href={preview.full_url} target={'__blank'}>
-              <Heading level={3}>{preview.title}</Heading>
+              <Heading level={3}>{`${configs[preview.title].name} (${configs[preview.title].platform})`}</Heading>
               <img style={{
                 maxWidth: '450px',
                 width: '100%'
