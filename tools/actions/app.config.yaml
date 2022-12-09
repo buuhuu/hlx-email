@@ -14,3 +14,16 @@ application:
             annotations:
               require-adobe-auth: false
               final: true
+      litmus:
+        license: Apache-2.0
+        actions:
+          preview:
+            function: preview/index.js
+            web: 'yes'
+            runtime: 'nodejs:14'
+            inputs:
+              LOG_LEVEL: debug
+              LITMUS_TOKEN: $LITMUS_TOKEN
+            annotations:
+              require-adobe-auth: false
+              final: true
