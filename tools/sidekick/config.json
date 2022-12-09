@@ -48,7 +48,7 @@
                 "dev",
                 "preview"
             ],
-            "url": "https://litmus--hlx-email--buuhuu.hlx.page/tools/litmus/dist/index.html",
+            "url": "/tools/litmus/dist/index.html",
             "isPalette": true,
             "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 480px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
         }

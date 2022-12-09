@@ -12,7 +12,7 @@ import ErrorImage from "@spectrum-icons/illustrations/Error"
 import React, { useEffect, useState } from 'react';
 
 function getEmailHTML() {
-  const iframe = document.getElementById('__emailFrame');
+  const iframe = top.document.getElementById('__emailFrame');
   if (iframe) {
     return iframe.srcdoc;
   }
