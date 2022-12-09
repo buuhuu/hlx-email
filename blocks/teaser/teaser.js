@@ -15,9 +15,17 @@ export default async function decorate(block) {
             </mj-column>
             <mj-column mj-class="mj-teaser-text-column">
                 <mj-text mj-class="mj-teaser-text">${textContainer.innerHTML}</mj-text>
-                <mj-button mj-class="mj-teaser-button" href="${buttonHref}">
-                    <span>${buttonContainer.firstElementChild.textContent} &nbsp;<span> <img src="${buttonSrcUrl}" width="34" height="34"/>
-                </mj-button>
+                <mj-text mj-class="mj-teaser-button">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>${buttonContainer.firstElementChild.textContent}</td>
+                                <td width="10px">&nbsp;</td>
+                                <td><img src="${buttonSrcUrl}" width="34" height="34"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </mj-text>
             </mj-column>
         </mj-section>
     `
