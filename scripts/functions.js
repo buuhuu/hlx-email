@@ -241,17 +241,17 @@ function reduceMjml(mjml) {
   );
 }
 
-export function decorateDefaultContent(wrapper) {
+export function decorateDefaultContent(wrapper, { textClass = '', buttonClass = '', imageClass = '' } = {}) {
   return [...wrapper.children]
     .reduce((mjml, par) => {
       const img = par.querySelector('img');
       if (img) {
-        return `${mjml}<mj-image css-class="image" src="${img.src}" />`;
+        return `${mjml}<mj-image mj-class="${imageClass}" src="${img.src}" />`;
       }
       if (par.matches('.button-container')) {
         const link = par.querySelector(':scope > a');
         return `${mjml}
-                <mj-button css-class="button" href="${link.href}">
+                <mj-button mj-class="${buttonClass}" href="${link.href}">
                   ${link.innerText}
                 </mj-button>
             `;
@@ -259,39 +259,46 @@ export function decorateDefaultContent(wrapper) {
       if (mjml.endsWith('</mj-text>')) {
         return `${mjml.substring(0, mjml.length - 10)}${par.outerHTML}</mj-text>`;
       }
-      return `${mjml}<mj-text>${par.outerHTML}</mj-text>`;
+      return `${mjml}<mj-text mj-class="${textClass}">${par.outerHTML}</mj-text>`;
     }, '');
 }
 
 export async function toMjml(main) {
   const mjml2html$ = loadMjml();
   const main$ = Promise.all([...main.querySelectorAll(':scope > .section')]
-    .map(async (section) => reduceMjml(await Promise.all([...section.children]
-      .map(async (wrapper) => {
-        if (wrapper.matches('.default-content-wrapper')) {
-          const cssClasses = [...section.classList];
-          const mjClasses = cssClasses.filter((cls) => cls !== 'section').map((cls) => `mj-${cls}`);
-          return Promise.resolve([`
-            <mj-section css-class="${cssClasses.join(' ')}" mj-class="${mjClasses.join(' ')}">
-              <mj-column>
-                ${decorateDefaultContent(wrapper)}
+    .map(async (section) => {
+      const [sectionBody, sectionHead] = reduceMjml(await Promise.all([...section.children]
+        .map(async (wrapper) => {
+          if (wrapper.matches('.default-content-wrapper')) {
+            return Promise.resolve([`
+            <mj-section mj-class="mj-content-section">
+              <mj-column mj-class="mj-content-column">
+                ${decorateDefaultContent(wrapper,
+              { textClass: 'mj-content-text', imageClass: 'mj-content-image', buttonClass: 'mj-content-button' }
+            )}
               </mj-column>
             </mj-section>
           `]);
-        }
-        const block = wrapper.querySelector('.block');
-        if (block) {
-          const decorator = await loadBlock(block);
-          const decorated$ = decorator(block);
-          const styles$ = loadStyles(decorator);
-          return Promise.all([decorated$, styles$])
-            .catch((err) => {
-              console.error(err);
-              return [];
-            });
-        }
-        return Promise.resolve([]);
-      })))));
+          }
+          const block = wrapper.querySelector('.block');
+          if (block) {
+            const decorator = await loadBlock(block);
+            const decorated$ = decorator(block);
+            const styles$ = loadStyles(decorator);
+            return Promise.all([decorated$, styles$])
+              .catch((err) => {
+                console.error(err);
+                return [];
+              });
+          }
+          return Promise.resolve([]);
+        })));
+
+      return [
+        `<mj-wrapper>${sectionBody}</mj-wrapper>`,
+        sectionHead
+      ];
+    }));
   const styles$ = loadStyles({
     styles: ['/styles/email-styles.css'],
     inlineStyles: ['/styles/email-inline-styles.css'],
@@ -312,11 +319,22 @@ export async function toMjml(main) {
 function buildHeroBlock(main) {
   const picture = main.querySelector('picture');
   if (picture
-        && picture.parentElement === main.firstElementChild
-        && picture.parentElement.firstElementChild === picture) {
+    && picture.parentElement === main.firstElementChild
+    && picture.parentElement.firstElementChild === picture) {
     // picture is the first element on the page
     const elems = [...picture.parentElement.children];
     picture.parentElement.append(buildBlock('hero', { elems }));
+  }
+}
+
+function buildIntroBlock(main) {
+  const h1 = main.firstElementChild.querySelector(':scope > h1');
+  if (h1) {
+    const textSiblings = [...main.firstElementChild.querySelectorAll(':scope > :where(p,h1,h2,h3,h4,h5,h6,ul,ol)')];
+    const placeholder = document.createElement('div');
+    h1.replaceWith(placeholder);
+    const block = buildBlock('intro', { elems: textSiblings });
+    placeholder.replaceWith(block);
   }
 }
 
@@ -327,6 +345,7 @@ function buildHeroBlock(main) {
 function buildAutoBlocks(main) {
   try {
     buildHeroBlock(main);
+    buildIntroBlock(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);

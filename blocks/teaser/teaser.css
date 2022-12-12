@@ -1,0 +1,53 @@
+.mj-teaser-section {
+    background-color: black;
+}
+
+.mj-teaser-image-column {
+    vertical-align: middle;
+}
+
+.mj-teaser-text-column {
+    background-color: black;
+    inner-background-color: black;
+    vertical-align: middle;
+    padding: 0 30px;
+}
+
+.mj-teaser-text {
+    color: white;
+    font-size: 14px;
+    css-class: 'teaser-text';
+}
+
+.mj-teaser-button {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 13.2px;
+    text-transform: uppercase;
+    padding: 20px 0;
+    color: white;
+    css-class: 'teaser-button';
+    letter-spacing: 0.3px;
+    align: right;
+}
+
+.teaser-text,
+.teaser-text h2 {
+    color: white
+}
+
+.teaser-text h2 {
+    padding-bottom: 5px;   
+}
+
+.teaser-button span {
+    line-height: 34px;
+}
+
+.teaser-button img {
+    vertical-align: middle;
+}
+
+.teaser-button > div {
+    text-align: unset !important; 
+}

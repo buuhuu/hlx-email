@@ -12,17 +12,36 @@
 mj-all {
     padding: 0;
     font-family: 'Adobe Clean', Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 20px;
 }
 
 mj-section {
-    padding: 0 10px;
     css-class: 'section';
 }
 
 mj-body {
     background-color: #eee;
+}
+
+mj-button {
+    background-color: black;
+    border-radius: 0;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 13.2px;
+    text-transform: uppercase;
+    width: 180px;
+    padding-top: 25px;
+}
+
+mj-wrapper {
+    padding-bottom: 40px;
+}
+
+.mj-content-column {
+    padding: 0 20px;
 }
 
 .aem-sites-sprint-summary .mj-highlight {

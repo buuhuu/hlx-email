@@ -1,10 +1,15 @@
 import { decorateDefaultContent } from '../../scripts/functions.js';
 
 export default function decorate(block) {
-  let mjml = `<mj-section css-class="colums-cols-${block.firstElementChild.children.length}">`;
-  [...block.firstElementChild.children].forEach((div, index) => {
+  const cols = [...block.firstElementChild.children];
+  const filteredClassList = [...block.classList]
+    .filter((cls) => cls !== 'columns' && cls !== 'block');
+  const type = filteredClassList.length ? `-${filteredClassList[0]}` : ''; 
+    
+  let mjml = `<mj-section mj-class="mj-colums${type}-cols-${cols.length}">`;
+  cols.forEach((div, index) => {
     mjml += `
-      <mj-column css-class="columns-col-${index + 1}">
+      <mj-column mj-class="mj-columns${type}-col mj-columns${type}-col-${index + 1} mj-columns${type}-col-${index === 0 ? 'first' : (index === cols.length - 1 ? 'last' : '')}">
         ${decorateDefaultContent(div)}
       </mj-column>
     `;

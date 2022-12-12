@@ -1,0 +1,15 @@
+.mj-intro-section {
+    padding: 0 20px;
+    text-align: center;
+}
+
+.mj-intro-column {
+    background-color: white;
+    padding: 30px;
+}
+
+.mj-intro-text {
+    align: center;
+    font-size: 14px;
+    color: #666666;
+}
