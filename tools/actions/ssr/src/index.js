@@ -4,9 +4,7 @@ import less from 'less';
 import mjml from 'mjml';
 import { decorateMain, toMjml, init as initLibFranklin } from '../../../../scripts/functions.js';
 
-async function render(tld = 'page', pathname = '/') {
-    const base = `https://main--hlx-email--buuhuu.hlx.${tld}`;
-    const url = base + pathname;
+async function render(base, url) {
     const resp = await fetch(url);
 
     if (!resp.ok) {
@@ -29,7 +27,7 @@ async function render(tld = 'page', pathname = '/') {
 }
 
 export async function main(params) {
-    const { preview } = params;
-    const path = params['__ow_path'] || '/';
-    return render(typeof preview !== 'undefined' ? 'page' : 'live', path);
+    const url =  params['__ow_path'] ? params['__ow_path'].substring(1) : 'main--hlx-email--buuhuu.hlx.live';
+    const [base] = url.split('/');
+    return render(`https://${base}`, `https://${url}`);
 }
