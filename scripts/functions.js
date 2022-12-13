@@ -311,7 +311,7 @@ export async function toMjml(main) {
   console.debug(mjml);
 
   const mjml2html = await mjml2html$;
-  const { html } = mjml2html(mjml, { minify: true });
+  const { html } = mjml2html(mjml, { minify: false });
 
   return html;
 }
