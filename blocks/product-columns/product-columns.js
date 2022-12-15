@@ -1,4 +1,4 @@
-export default async function decorate(block) {
+export default async function decorate(block, window) {
     const rows = [...block.children];
     const imagesRow = rows[0]; 
     const pricesRow = rows[1];

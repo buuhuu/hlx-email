@@ -66,7 +66,7 @@ async function loadBlock(block) {
       }
       decorator = async (b) => {
         try {
-          return await blockModule.default(b);
+          return await blockModule.default(b, window);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.log(`failed to load module for ${blockName}`, error);
@@ -311,7 +311,7 @@ export async function toMjml(main) {
   console.debug(mjml);
 
   const mjml2html = await mjml2html$;
-  const { html } = mjml2html(mjml, { minify: false });
+  const { html } = mjml2html(mjml, { minify: true });
 
   return html;
 }
@@ -412,6 +412,7 @@ export function decorateMain(main) {
 
 export function init(w) {
   initLibFranklin(w);
+  w.personalizationType = personalizationType;
   window = w;
   document = w.document;
 }

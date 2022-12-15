@@ -1,4 +1,4 @@
-export default async function decorate(block) {
+export default async function decorate(block, window) {
     const [imgContainer, textContainer] = block.firstElementChild.children;
     const img = imgContainer.querySelector('img');
     const buttonContainer = textContainer.querySelector('.button-container');
