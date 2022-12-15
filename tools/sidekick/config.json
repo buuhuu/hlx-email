@@ -41,7 +41,7 @@
             "event": "downloadHtml"
         },{
             "id": "litmus",
-            "title": "Litmus Email Testing",
+            "title": "Litmus Preview",
             "environments": [
                 "dev",
                 "preview"
